@@ -1,6 +1,6 @@
 # esc_pos_utils
 
-Basic classes for ESC/POS printing.
+Basic Flutter/Dart classes for ESC/POS printing.
 
 
 ## Getting started (Generate a simple ticket)

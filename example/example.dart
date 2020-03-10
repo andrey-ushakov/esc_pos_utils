@@ -1,3 +1,6 @@
+import 'package:image/image.dart';
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 
 Future<void> main() async {
@@ -44,14 +47,10 @@ Future<void> main() async {
       ));
 
   // Print image:
-  // add https://pub.dev/packages/image library as a dependency
-  // add import 'dart:typed_data';
-  // add import 'package:flutter/services.dart';
-
-  // final ByteData data = await rootBundle.load('assets/logo.png');
-  // final Uint8List bytes = data.buffer.asUint8List();
-  // final Image image = decodeImage(bytes);
-  // ticket.image(image);
+  final ByteData data = await rootBundle.load('assets/logo.png');
+  final Uint8List bytes = data.buffer.asUint8List();
+  final Image image = decodeImage(bytes);
+  ticket.image(image);
   // Print image using an alternative (obsolette) command
   // ticket.imageRaster(image);
 
