@@ -1,6 +1,6 @@
 name: esc_pos_utils
 description: Basic classes for ESC/POS printing
-version: 0.0.1
+version: 0.1.0
 homepage:
 
 environment:
@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  hex: ^0.1.2
+  gbk_codec: ^0.3.2
 
 dev_dependencies:
   flutter_test:
