@@ -526,6 +526,7 @@ class Ticket {
     int height,
     BarcodeFont font,
     BarcodeText textPos = BarcodeText.below,
+    PosTextAlign align = PosTextAlign.center,
   }) {
     // Set text position
     bytes += cBarcodeSelectPos.codeUnits + [textPos.value];
@@ -543,6 +544,11 @@ class Ticket {
     if (height != null && height >= 1 && height <= 255) {
       bytes += cBarcodeSetH.codeUnits + [height];
     }
+
+    // Set alignment
+    bytes += latin1.encode(align == PosTextAlign.left
+        ? cAlignLeft
+        : (align == PosTextAlign.center ? cAlignCenter : cAlignRight));
 
     // Print barcode
     final header = cBarcodePrint.codeUnits + [barcode.type.value];
