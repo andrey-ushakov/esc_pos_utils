@@ -89,11 +89,17 @@ class PosCodeTable {
   /// PC928 - Greek
   static const pc928 = PosCodeTable._internal(67);
 
+  /// PC866 - Russian
+  static const pc866_1 = PosCodeTable._internal(59);
+
   /// PC866 - Cyrillic #2
-  static const pc866 = PosCodeTable._internal(17);
+  static const pc866_2 = PosCodeTable._internal(17);
 
   /// PC852 - Latin2
   static const pc852 = PosCodeTable._internal(18);
+
+  /// WPC1251 - Cyrillic
+  static const wpc1251 = PosCodeTable._internal(73);
 
   /// WPC1252 - Latin1
   static const wpc1252 = PosCodeTable._internal(71);
