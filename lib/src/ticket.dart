@@ -467,6 +467,7 @@ class Ticket {
   /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
   void imageRaster(
     Image imgSrc, {
+    PosTextAlign align = PosTextAlign.center,
     bool highDensityHorizontal = true,
     bool highDensityVertical = true,
   }) {
@@ -505,6 +506,11 @@ class Ticket {
 
     // Pack bits into bytes
     final List<int> res = _packBitsIntoBytes(oneChannelBytes);
+
+    // Image alignment
+    bytes += latin1.encode(align == PosTextAlign.left
+        ? cAlignLeft
+        : (align == PosTextAlign.center ? cAlignCenter : cAlignRight));
 
     bytes += List.from(header)..addAll(res);
   }
