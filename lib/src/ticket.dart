@@ -41,11 +41,19 @@ class Ticket {
     return colInd == 0 ? 0 : (width * colInd / 11 - 1);
   }
 
+  Uint8List _encode(String text, {bool kanjiOff = true}) {
+    if (kanjiOff) {
+      return latin1.encode(text);
+    } else {
+      return Uint8List.fromList(gbk_bytes.encode(text));
+    }
+  }
+
   /// Generic print for internal use
   ///
   /// [colInd] range: 0..11
   void _text(
-    String text, {
+    Uint8List textBytes, {
     PosStyles styles = const PosStyles(),
     int colInd = 0,
     bool kanjiOff = true,
@@ -61,7 +69,7 @@ class Ticket {
           : (styles.align == PosTextAlign.center ? cAlignCenter : cAlignRight));
     } else {
       final double toPos = _colIndToPosition(colInd + colWidth) - 5;
-      final double textLen = text.length * charLen;
+      final double textLen = textBytes.length * charLen;
 
       if (styles.align == PosTextAlign.right) {
         fromPos = toPos - textLen;
@@ -105,11 +113,7 @@ class Ticket {
       );
     }
 
-    if (kanjiOff) {
-      bytes += latin1.encode(text);
-    } else {
-      bytes += gbk_bytes.encode(text);
-    }
+    bytes += textBytes;
   }
 
   /// Sens raw command(s)
@@ -128,7 +132,7 @@ class Ticket {
   }) {
     if (!containsChinese) {
       _text(
-        text,
+        _encode(text, kanjiOff: !containsChinese),
         styles: styles,
         kanjiOff: !containsChinese,
       );
@@ -142,7 +146,7 @@ class Ticket {
   /// Break text into chinese/non-chinese lexemes
   List _getLexemes(String text) {
     bool _isChinese(String ch) {
-      return ch.codeUnitAt(0) > 255 ? true : false;
+      return ch.codeUnitAt(0) > 255;
     }
 
     final List<String> lexemes = [];
@@ -180,7 +184,7 @@ class Ticket {
     // Print each lexeme using codetable OR kanji
     for (var i = 0; i < lexemes.length; ++i) {
       _text(
-        lexemes[i],
+        _encode(lexemes[i], kanjiOff: !isLexemeChinese[i]),
         styles: styles,
         kanjiOff: !isLexemeChinese[i],
       );
@@ -229,7 +233,7 @@ class Ticket {
           cols.sublist(0, i).fold(0, (int sum, col) => sum + col.width);
       if (!cols[i].containsChinese) {
         _text(
-          cols[i].text,
+          _encode(cols[i].text),
           styles: cols[i].styles,
           colInd: colInd,
           colWidth: cols[i].width,
@@ -242,7 +246,7 @@ class Ticket {
         // Print each lexeme using codetable OR kanji
         for (var j = 0; j < lexemes.length; ++j) {
           _text(
-            lexemes[j],
+            _encode(lexemes[j], kanjiOff: !isLexemeChinese[j]),
             styles: cols[i].styles,
             colInd: colInd,
             colWidth: cols[i].width,
