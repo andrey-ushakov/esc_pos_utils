@@ -137,11 +137,23 @@ class Ticket {
         styles: styles,
         kanjiOff: !containsChinese,
       );
-      emptyLines(linesAfter + 1); // at least ine line break after the text
+      // Ensure at least one line break after the text
+      emptyLines(linesAfter + 1);
       reset();
     } else {
       _mixedKanji(text, styles: styles, linesAfter: linesAfter);
     }
+  }
+
+  void textEncoded(
+    Uint8List textBytes, {
+    PosStyles styles = const PosStyles(),
+    int linesAfter = 0,
+  }) {
+    _text(textBytes, styles: styles);
+    // Ensure at least one line break after the text
+    emptyLines(linesAfter + 1);
+    reset();
   }
 
   /// Break text into chinese/non-chinese lexemes
