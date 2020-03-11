@@ -64,16 +64,16 @@ class Ticket {
 
     // Align
     if (colWidth == 12) {
-      bytes += latin1.encode(styles.align == PosTextAlign.left
+      bytes += latin1.encode(styles.align == PosAlign.left
           ? cAlignLeft
-          : (styles.align == PosTextAlign.center ? cAlignCenter : cAlignRight));
+          : (styles.align == PosAlign.center ? cAlignCenter : cAlignRight));
     } else {
       final double toPos = _colIndToPosition(colInd + colWidth) - 5;
       final double textLen = textBytes.length * charLen;
 
-      if (styles.align == PosTextAlign.right) {
+      if (styles.align == PosAlign.right) {
         fromPos = toPos - textLen;
-      } else if (styles.align == PosTextAlign.center) {
+      } else if (styles.align == PosAlign.center) {
         fromPos = fromPos + (toPos - fromPos) / 2 - textLen / 2;
       }
     }
@@ -390,7 +390,7 @@ class Ticket {
   /// Print image using (ESC *) command
   ///
   /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
-  void image(Image imgSrc, {PosTextAlign align = PosTextAlign.center}) {
+  void image(Image imgSrc, {PosAlign align = PosAlign.center}) {
     final Image image = Image.from(imgSrc); // make a copy
     const bool highDensityHorizontal = true;
     const bool highDensityVertical = true;
@@ -419,9 +419,9 @@ class Ticket {
     header.addAll(_intLowHigh(heightPx, 2));
 
     // Image alignment
-    bytes += latin1.encode(align == PosTextAlign.left
+    bytes += latin1.encode(align == PosAlign.left
         ? cAlignLeft
-        : (align == PosTextAlign.center ? cAlignCenter : cAlignRight));
+        : (align == PosAlign.center ? cAlignCenter : cAlignRight));
 
     // Adjust line spacing (for 16-unit line feeds): ESC 3 0x10 (HEX: 0x1b 0x33 0x10)
     bytes += [27, 51, 16];
@@ -467,7 +467,7 @@ class Ticket {
   /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
   void imageRaster(
     Image imgSrc, {
-    PosTextAlign align = PosTextAlign.center,
+    PosAlign align = PosAlign.center,
     bool highDensityHorizontal = true,
     bool highDensityVertical = true,
   }) {
@@ -508,9 +508,9 @@ class Ticket {
     final List<int> res = _packBitsIntoBytes(oneChannelBytes);
 
     // Image alignment
-    bytes += latin1.encode(align == PosTextAlign.left
+    bytes += latin1.encode(align == PosAlign.left
         ? cAlignLeft
-        : (align == PosTextAlign.center ? cAlignCenter : cAlignRight));
+        : (align == PosAlign.center ? cAlignCenter : cAlignRight));
 
     bytes += List.from(header)..addAll(res);
   }
@@ -526,7 +526,7 @@ class Ticket {
     int height,
     BarcodeFont font,
     BarcodeText textPos = BarcodeText.below,
-    PosTextAlign align = PosTextAlign.center,
+    PosAlign align = PosAlign.center,
   }) {
     // Set text position
     bytes += cBarcodeSelectPos.codeUnits + [textPos.value];
@@ -546,9 +546,9 @@ class Ticket {
     }
 
     // Set alignment
-    bytes += latin1.encode(align == PosTextAlign.left
+    bytes += latin1.encode(align == PosAlign.left
         ? cAlignLeft
-        : (align == PosTextAlign.center ? cAlignCenter : cAlignRight));
+        : (align == PosAlign.center ? cAlignCenter : cAlignRight));
 
     // Print barcode
     final header = cBarcodePrint.codeUnits + [barcode.type.value];

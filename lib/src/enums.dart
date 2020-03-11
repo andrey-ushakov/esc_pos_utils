@@ -6,7 +6,7 @@
  * See LICENSE for distribution and usage details.
  */
 
-enum PosTextAlign { left, center, right }
+enum PosAlign { left, center, right }
 enum PosCutMode { full, partial }
 enum PosFontType { fontA, fontB }
 
