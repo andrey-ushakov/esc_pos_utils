@@ -1,3 +1,9 @@
+## [0.3.0]
+* Image alignment (left, center, right). Align center by default.
+* Barcode alignment (left, center, right). Align center by default.
+* `PosTextAlign` renamed to `PosAlign`
+
+
 ## [0.2.0]
 * `Ticket._text` function takes an Uint8List of bytes instead of a String
 * `Ticket._text` function refactored: removed styling commands when it's unnecessary which makes ticket's final byte code much shorter
