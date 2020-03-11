@@ -424,12 +424,12 @@ class Ticket {
         : (align == PosTextAlign.center ? cAlignCenter : cAlignRight));
 
     // Adjust line spacing (for 16-unit line feeds): ESC 3 0x10 (HEX: 0x1b 0x33 0x10)
-    rawBytes([27, 51, 16]);
+    bytes += [27, 51, 16];
     for (int i = 0; i < blobs.length; ++i) {
-      rawBytes(List.from(header)..addAll(blobs[i])..addAll('\n'.codeUnits));
+      bytes += List.from(header)..addAll(blobs[i])..addAll('\n'.codeUnits);
     }
     // Reset line spacing: ESC 2 (HEX: 0x1b 0x32)
-    rawBytes([27, 50]);
+    bytes += [27, 50];
   }
 
   /// Extract slices of an image as equal-sized blobs of column-format data.
@@ -506,7 +506,7 @@ class Ticket {
     // Pack bits into bytes
     final List<int> res = _packBitsIntoBytes(oneChannelBytes);
 
-    rawBytes(List.from(header)..addAll(res));
+    bytes += List.from(header)..addAll(res);
   }
 
   /// Print barcode
@@ -522,24 +522,24 @@ class Ticket {
     BarcodeText textPos = BarcodeText.below,
   }) {
     // Set text position
-    rawBytes(cBarcodeSelectPos.codeUnits + [textPos.value]);
+    bytes += cBarcodeSelectPos.codeUnits + [textPos.value];
 
     // Set font
     if (font != null) {
-      rawBytes(cBarcodeSelectFont.codeUnits + [font.value]);
+      bytes += cBarcodeSelectFont.codeUnits + [font.value];
     }
 
     // Set width
     if (width != null && width >= 0) {
-      rawBytes(cBarcodeSetW.codeUnits + [width]);
+      bytes += cBarcodeSetW.codeUnits + [width];
     }
     // Set height
     if (height != null && height >= 1 && height <= 255) {
-      rawBytes(cBarcodeSetH.codeUnits + [height]);
+      bytes += cBarcodeSetH.codeUnits + [height];
     }
 
     // Print barcode
     final header = cBarcodePrint.codeUnits + [barcode.type.value];
-    rawBytes(header + barcode.data + [0]);
+    bytes += header + barcode.data + [0];
   }
 }
