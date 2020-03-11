@@ -50,60 +50,60 @@ class PosBeepDuration {
 }
 
 class PosCodeTable {
-  const PosCodeTable._internal(this.value);
+  const PosCodeTable(this.value);
   final int value;
 
   /// PC437 - U.S.A., Standard Europe
-  static const pc437 = PosCodeTable._internal(0);
+  static const pc437 = PosCodeTable(0);
 
   /// Katakana
-  static const katakana = PosCodeTable._internal(1);
+  static const katakana = PosCodeTable(1);
 
   /// PC850 Multilingual
-  static const pc850 = PosCodeTable._internal(2);
+  static const pc850 = PosCodeTable(2);
 
   /// PC860 - Portuguese
-  static const pc860 = PosCodeTable._internal(3);
+  static const pc860 = PosCodeTable(3);
 
   /// PC863 - Canadian-French
-  static const pc863 = PosCodeTable._internal(4);
+  static const pc863 = PosCodeTable(4);
 
   /// PC865 - Nordic
-  static const pc865 = PosCodeTable._internal(5);
+  static const pc865 = PosCodeTable(5);
 
   /// Western Europe
-  static const westEur = PosCodeTable._internal(6);
+  static const westEur = PosCodeTable(6);
 
   /// Greek
-  static const greek = PosCodeTable._internal(7);
+  static const greek = PosCodeTable(7);
 
   /// PC737 - Greek
-  static const pc737 = PosCodeTable._internal(64);
+  static const pc737 = PosCodeTable(64);
 
   /// PC851 - Greek
-  static const pc851 = PosCodeTable._internal(65);
+  static const pc851 = PosCodeTable(65);
 
   /// PC869 - Greek
-  static const pc869 = PosCodeTable._internal(66);
+  static const pc869 = PosCodeTable(66);
 
   /// PC928 - Greek
-  static const pc928 = PosCodeTable._internal(67);
+  static const pc928 = PosCodeTable(67);
 
   /// PC866 - Russian
-  static const pc866_1 = PosCodeTable._internal(59);
+  static const pc866_1 = PosCodeTable(59);
 
   /// PC866 - Cyrillic #2
-  static const pc866_2 = PosCodeTable._internal(17);
+  static const pc866_2 = PosCodeTable(17);
 
   /// PC852 - Latin2
-  static const pc852 = PosCodeTable._internal(18);
+  static const pc852 = PosCodeTable(18);
 
   /// WPC1251 - Cyrillic
-  static const wpc1251 = PosCodeTable._internal(73);
+  static const wpc1251 = PosCodeTable(73);
 
   /// WPC1252 - Latin1
-  static const wpc1252 = PosCodeTable._internal(71);
+  static const wpc1252 = PosCodeTable(71);
 
   /// Space page
-  static const spacePage = PosCodeTable._internal(255);
+  static const spacePage = PosCodeTable(255);
 }
