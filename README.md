@@ -3,7 +3,7 @@
 Basic Flutter/Dart classes for ESC/POS printing. `Ticket` class generates ESC/POS commands that can be sent to a thermal printer.
 
 
-## External Libraries using `esc_pos_utils`
+## Libraries using `esc_pos_utils`
 * WiFi/Ethernet printing: [esc_pos_printer](https://github.com/andrey-ushakov/esc_pos_printer)
 * Bluetooth printing: [esc_pos_bluetooth](https://github.com/andrey-ushakov/esc_pos_bluetooth)
 
