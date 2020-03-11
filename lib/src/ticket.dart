@@ -81,19 +81,20 @@ class Ticket {
     final hexStr = fromPos.round().toRadixString(16).padLeft(3, '0');
     final hexPair = HEX.decode(hexStr);
 
-    bytes += styles.bold ? cBoldOn.codeUnits : cBoldOff.codeUnits;
-    bytes += styles.turn90 ? cTurn90On.codeUnits : cTurn90Off.codeUnits;
-    bytes += styles.reverse ? cReverseOn.codeUnits : cReverseOff.codeUnits;
-    bytes +=
-        styles.underline ? cUnderline1dot.codeUnits : cUnderlineOff.codeUnits;
-    bytes += styles.fontType == PosFontType.fontA
-        ? cFontA.codeUnits
-        : cFontB.codeUnits;
-    // Text size
-    bytes += Uint8List.fromList(
-      List.from(cSizeGSn.codeUnits)
-        ..add(PosTextSize.decSize(styles.height, styles.width)),
-    );
+    bytes += styles.bold ? cBoldOn.codeUnits : <int>[];
+    bytes += styles.turn90 ? cTurn90On.codeUnits : <int>[];
+    bytes += styles.reverse ? cReverseOn.codeUnits : <int>[];
+    bytes += styles.underline ? cUnderline1dot.codeUnits : <int>[];
+    bytes += styles.fontType == PosFontType.fontB ? cFontB.codeUnits : <int>[];
+    // Characters size
+    if (styles.height.value != PosTextSize.size1.value ||
+        styles.width.value != PosTextSize.size1.value) {
+      bytes += Uint8List.fromList(
+        List.from(cSizeGSn.codeUnits)
+          ..add(PosTextSize.decSize(styles.height, styles.width)),
+      );
+    }
+
     // Position
     bytes += Uint8List.fromList(
       List.from(cPos.codeUnits)..addAll([hexPair[1], hexPair[0]]),
