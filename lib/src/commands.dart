@@ -57,3 +57,7 @@ const cBarcodeSelectFont = '${gs}f'; // Select font for HRI characters [N]
 const cBarcodeSetH = '${gs}h'; // Set barcode height [N]
 const cBarcodeSetW = '${gs}w'; // Set barcode width [N]
 const cBarcodePrint = '${gs}k'; // Print barcode
+
+// Cash Drawer Open
+const cCashDrawerPin2 = '${esc}p030';
+const cCashDrawerPin5 = '${esc}p130';

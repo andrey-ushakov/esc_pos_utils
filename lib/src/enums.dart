@@ -9,6 +9,7 @@
 enum PosAlign { left, center, right }
 enum PosCutMode { full, partial }
 enum PosFontType { fontA, fontB }
+enum PosDrawer { pin2, pin5 }
 
 class PosTextSize {
   const PosTextSize._internal(this.value);

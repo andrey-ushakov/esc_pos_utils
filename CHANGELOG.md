@@ -1,3 +1,7 @@
+## [0.3.1]
+* Added Open cash drawer command
+
+
 ## [0.3.0]
 * Image alignment (left, center, right). Align center by default.
 * Barcode alignment (left, center, right). Align center by default.

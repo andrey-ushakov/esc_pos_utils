@@ -387,7 +387,7 @@ class Ticket {
     return res;
   }
 
-  /// Print image using (ESC *) command
+  /// Print an image using (ESC *) command
   ///
   /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
   void image(Image imgSrc, {PosAlign align = PosAlign.center}) {
@@ -462,7 +462,7 @@ class Ticket {
     return blobs;
   }
 
-  /// Print image using (GS v 0) obsolete command
+  /// Print an image using (GS v 0) obsolete command
   ///
   /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
   void imageRaster(
@@ -515,7 +515,7 @@ class Ticket {
     bytes += List.from(header)..addAll(res);
   }
 
-  /// Print barcode
+  /// Print a barcode
   ///
   /// [width] range and units are different depending on the printer model.
   /// [height] range: 1 - 255. The units depend on the printer model.
@@ -553,5 +553,14 @@ class Ticket {
     // Print barcode
     final header = cBarcodePrint.codeUnits + [barcode.type.value];
     bytes += header + barcode.data + [0];
+  }
+
+  /// Open cash drawer
+  void drawer({PosDrawer pin = PosDrawer.pin2}) {
+    if (pin == PosDrawer.pin2) {
+      bytes += cCashDrawerPin2.codeUnits;
+    } else {
+      bytes += cCashDrawerPin5.codeUnits;
+    }
   }
 }
