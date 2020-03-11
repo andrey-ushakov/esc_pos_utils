@@ -390,7 +390,7 @@ class Ticket {
   /// Print image using (ESC *) command
   ///
   /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
-  void image(Image imgSrc) {
+  void image(Image imgSrc, {PosTextAlign align = PosTextAlign.center}) {
     final Image image = Image.from(imgSrc); // make a copy
     const bool highDensityHorizontal = true;
     const bool highDensityVertical = true;
@@ -417,6 +417,11 @@ class Ticket {
     final List<int> header = List.from(cBitImg.codeUnits);
     header.add(densityByte);
     header.addAll(_intLowHigh(heightPx, 2));
+
+    // Image alignment
+    bytes += latin1.encode(align == PosTextAlign.left
+        ? cAlignLeft
+        : (align == PosTextAlign.center ? cAlignCenter : cAlignRight));
 
     // Adjust line spacing (for 16-unit line feeds): ESC 3 0x10 (HEX: 0x1b 0x33 0x10)
     rawBytes([27, 51, 16]);
