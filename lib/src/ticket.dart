@@ -59,7 +59,9 @@ class Ticket {
     bool kanjiOff = true,
     int colWidth = 12,
   }) {
-    const charLen = 11.625; // 48 symbols per line for 80mm and 32 for 58mm
+    // 48 symbols per line for 80mm and 32 for 58mm
+    // charWidth = default width * text size multiplier
+    double charWidth = 11.625 * styles.width.value;
     double fromPos = _colIndToPosition(colInd);
 
     // Align
@@ -68,13 +70,17 @@ class Ticket {
           ? cAlignLeft
           : (styles.align == PosAlign.center ? cAlignCenter : cAlignRight));
     } else {
+      // Update fromPos
       final double toPos = _colIndToPosition(colInd + colWidth) - 5;
-      final double textLen = textBytes.length * charLen;
+      final double textLen = textBytes.length * charWidth;
 
       if (styles.align == PosAlign.right) {
         fromPos = toPos - textLen;
       } else if (styles.align == PosAlign.center) {
         fromPos = fromPos + (toPos - fromPos) / 2 - textLen / 2;
+      }
+      if (fromPos < 0) {
+        fromPos = 0;
       }
     }
 
