@@ -204,6 +204,9 @@ class PosCodeTable {
   /// PC3012 - Latvian-2
   static const pc3012 = PosCodeTable(87);
 
-  /// Space page
-  static const spacePage = PosCodeTable(255);
+  /// Thai
+  static const thai_2 = PosCodeTable(96);
+
+  /// Thai
+  static const thai_1 = PosCodeTable(255);
 }

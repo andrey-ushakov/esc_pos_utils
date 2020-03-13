@@ -2,6 +2,7 @@
 * `PosColumn` can contain encoded text (`textEncoded` field)
 * Bug fix: Columns with `PosTextSize` > `size1`
 * Added Barcode Code128
+* Added new code pages
 
 
 ## [0.3.1]
