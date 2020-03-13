@@ -7,7 +7,7 @@
  */
 
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:typed_data' show Uint8List;
 import 'package:gbk_codec/gbk_codec.dart';
 import 'package:hex/hex.dart';
 import 'package:image/image.dart';
@@ -246,7 +246,9 @@ class Ticket {
           cols.sublist(0, i).fold(0, (int sum, col) => sum + col.width);
       if (!cols[i].containsChinese) {
         _text(
-          _encode(cols[i].text),
+          cols[i].textEncoded != null
+              ? cols[i].textEncoded
+              : _encode(cols[i].text),
           styles: cols[i].styles,
           colInd: colInd,
           colWidth: cols[i].width,

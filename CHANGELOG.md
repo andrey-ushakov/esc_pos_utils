@@ -1,3 +1,7 @@
+## [0.3.2]
+* `PosColumn` can contain encoded text (`textEncoded` field)
+
+
 ## [0.3.1]
 * Added Open cash drawer command
 
