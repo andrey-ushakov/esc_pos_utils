@@ -1,5 +1,6 @@
 ## [0.3.2]
 * `PosColumn` can contain encoded text (`textEncoded` field)
+* Bug fix: Columns with `PosTextSize` > `size1`
 
 
 ## [0.3.1]
