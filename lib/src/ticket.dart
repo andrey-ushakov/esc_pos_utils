@@ -525,7 +525,7 @@ class Ticket {
 
   /// Print a barcode
   ///
-  /// [width] range and units are different depending on the printer model.
+  /// [width] range and units are different depending on the printer model (some printers use 1..5).
   /// [height] range: 1 - 255. The units depend on the printer model.
   /// Width, height, font, text position settings are effective until performing of ESC @, reset or power-off.
   void barcode(
@@ -560,7 +560,13 @@ class Ticket {
 
     // Print barcode
     final header = cBarcodePrint.codeUnits + [barcode.type.value];
-    bytes += header + barcode.data + [0];
+    if (barcode.type.value <= 6) {
+      // Function A
+      bytes += header + barcode.data + [0];
+    } else {
+      // Function B
+      bytes += header + [barcode.data.length] + barcode.data;
+    }
   }
 
   /// Open cash drawer

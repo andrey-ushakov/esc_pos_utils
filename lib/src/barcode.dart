@@ -30,6 +30,9 @@ class BarcodeType {
 
   /// CODABAR (NW-7)
   static const codabar = BarcodeType._internal(6);
+
+  /// CODE128
+  static const code128 = BarcodeType._internal(73);
 }
 
 class BarcodeText {
@@ -225,6 +228,32 @@ class Barcode {
     }
 
     _type = BarcodeType.codabar;
+    _data = _convertData(barcodeData);
+  }
+
+  /// CODE128
+  ///
+  /// k >= 2
+  /// d: '{A'/'{B'/'{C' => '0'–'9', A–D, a–d, $, +, −, ., /, :
+  /// usage:
+  /// {A = QRCode type A
+  /// {B = QRCode type B
+  /// {C = QRCode type C
+  /// barcodeData ex.: "{A978020137962".split("");
+  Barcode.code128(List<dynamic> barcodeData) {
+    final k = barcodeData.length;
+    if (k < 2) {
+      throw Exception('Barcode: Wrong data range');
+    }
+
+    final regex = RegExp(r'^\{[A-C][\x00-\x7F]+$');
+    final bool isDataValid = regex.hasMatch(barcodeData.join());
+
+    if (!isDataValid) {
+      throw Exception('Barcode: Data is not valid');
+    }
+
+    _type = BarcodeType.code128;
     _data = _convertData(barcodeData);
   }
 
