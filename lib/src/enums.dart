@@ -11,6 +11,11 @@ enum PosCutMode { full, partial }
 enum PosFontType { fontA, fontB }
 enum PosDrawer { pin2, pin5 }
 
+/// Choose image printing function
+/// bitImageRaster: GS v 0 (obsolete)
+/// graphics: GS ( L
+enum PosImageFn { bitImageRaster, graphics }
+
 class PosTextSize {
   const PosTextSize._internal(this.value);
   final int value;

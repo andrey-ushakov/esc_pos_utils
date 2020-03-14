@@ -5,6 +5,7 @@
 * Added new code pages
 * `imageRaster` bug fixed
 * Ticket bytecode optimization: do not generate align left command (it's a default value)
+* Added new image print function: `GS ( L`
 
 
 ## [0.3.1]

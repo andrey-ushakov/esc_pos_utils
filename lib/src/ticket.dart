@@ -473,28 +473,11 @@ class Ticket {
     return blobs;
   }
 
-  /// Print an image using (GS v 0) obsolete command
-  ///
-  /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
-  void imageRaster(
-    Image imgSrc, {
-    PosAlign align = PosAlign.center,
-    bool highDensityHorizontal = true,
-    bool highDensityVertical = true,
-  }) {
+  /// Image rasterization
+  List<int> _toRasterFormat(Image imgSrc) {
     final Image image = Image.from(imgSrc); // make a copy
-
     final int widthPx = image.width;
     final int heightPx = image.height;
-
-    final int widthBytes = (widthPx + 7) ~/ 8;
-    final int densityByte =
-        (highDensityVertical ? 0 : 1) + (highDensityHorizontal ? 0 : 2);
-
-    final List<int> header = List.from(cRasterImg.codeUnits);
-    header.add(densityByte);
-    header.addAll(_intLowHigh(widthBytes, 2));
-    header.addAll(_intLowHigh(heightPx, 2));
 
     grayscale(image);
     invert(image);
@@ -518,14 +501,59 @@ class Ticket {
     }
 
     // Pack bits into bytes
-    final List<int> res = _packBitsIntoBytes(oneChannelBytes);
+    return _packBitsIntoBytes(oneChannelBytes);
+  }
 
-    // Image alignment
-    bytes += latin1.encode(align == PosAlign.left
-        ? cAlignLeft
-        : (align == PosAlign.center ? cAlignCenter : cAlignRight));
+  /// Print an image using (GS v 0) obsolete command
+  ///
+  /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
+  void imageRaster(
+    Image image, {
+    PosAlign align = PosAlign.center,
+    bool highDensityHorizontal = true,
+    bool highDensityVertical = true,
+    PosImageFn imageFn = PosImageFn.bitImageRaster,
+  }) {
+    final int widthPx = image.width;
+    final int heightPx = image.height;
+    final int widthBytes = (widthPx + 7) ~/ 8;
+    final List<int> resterizedData = _toRasterFormat(image);
 
-    bytes += List.from(header)..addAll(res);
+    if (imageFn == PosImageFn.bitImageRaster) {
+      // GS v 0
+      final int densityByte =
+          (highDensityVertical ? 0 : 1) + (highDensityHorizontal ? 0 : 2);
+
+      final List<int> header = List.from(cRasterImg2.codeUnits);
+      header.add(densityByte); // m
+      header.addAll(_intLowHigh(widthBytes, 2)); // xL xH
+      header.addAll(_intLowHigh(heightPx, 2)); // yL yH
+      // Image alignment
+      bytes += latin1.encode(align == PosAlign.left
+          ? cAlignLeft
+          : (align == PosAlign.center ? cAlignCenter : cAlignRight));
+      bytes += List.from(header)..addAll(resterizedData);
+    } else if (imageFn == PosImageFn.graphics) {
+      // 'GS ( L' - FN_112 (Image data)
+      final List<int> header1 = List.from(cRasterImg.codeUnits);
+      header1.addAll(_intLowHigh(widthBytes * heightPx + 10, 2)); // pL pH
+      header1.addAll([48, 112, 48]); // m=48, fn=112, a=48
+      header1.addAll([1, 1]); // bx=1, by=1
+      header1.addAll([49]); // c=49
+      header1.addAll(_intLowHigh(widthBytes, 2)); // xL xH
+      header1.addAll(_intLowHigh(heightPx, 2)); // yL yH
+      // TODO Image alignment
+      // bytes += latin1.encode(align == PosAlign.left
+      //     ? cAlignLeft
+      //     : (align == PosAlign.center ? cAlignCenter : cAlignRight));
+      bytes += List.from(header1)..addAll(resterizedData);
+
+      // 'GS ( L' - FN_50 (Run print)
+      final List<int> header2 = List.from(cRasterImg.codeUnits);
+      header2.addAll([2, 0]); // pL pH
+      header2.addAll([48, 50]); // m fn[2,50]
+      bytes += List.from(header2);
+    }
   }
 
   /// Print a barcode
