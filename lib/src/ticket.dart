@@ -59,33 +59,42 @@ class Ticket {
     bool kanjiOff = true,
     int colWidth = 12,
   }) {
-    const charLen = 11.625; // 48 symbols per line for 80mm and 32 for 58mm
+    // 48 symbols per line for 80mm and 32 for 58mm
+    // charWidth = default width * text size multiplier
+    double charWidth = 11.625 * styles.width.value;
     double fromPos = _colIndToPosition(colInd);
 
     // Align
     if (colWidth == 12) {
-      bytes += latin1.encode(styles.align == PosAlign.left
-          ? cAlignLeft
-          : (styles.align == PosAlign.center ? cAlignCenter : cAlignRight));
+      // Skip align left (default align)
+      if (styles.align != PosAlign.left) {
+        bytes += latin1.encode(
+            styles.align == PosAlign.center ? cAlignCenter : cAlignRight);
+      }
     } else {
+      // Update fromPos
       final double toPos = _colIndToPosition(colInd + colWidth) - 5;
-      final double textLen = textBytes.length * charLen;
+      final double textLen = textBytes.length * charWidth;
 
       if (styles.align == PosAlign.right) {
         fromPos = toPos - textLen;
       } else if (styles.align == PosAlign.center) {
         fromPos = fromPos + (toPos - fromPos) / 2 - textLen / 2;
       }
+      if (fromPos < 0) {
+        fromPos = 0;
+      }
     }
 
     final hexStr = fromPos.round().toRadixString(16).padLeft(3, '0');
     final hexPair = HEX.decode(hexStr);
 
-    bytes += styles.bold ? cBoldOn.codeUnits : <int>[];
-    bytes += styles.turn90 ? cTurn90On.codeUnits : <int>[];
-    bytes += styles.reverse ? cReverseOn.codeUnits : <int>[];
-    bytes += styles.underline ? cUnderline1dot.codeUnits : <int>[];
-    bytes += styles.fontType == PosFontType.fontB ? cFontB.codeUnits : <int>[];
+    bytes += styles.bold ? cBoldOn.codeUnits : [];
+    bytes += styles.turn90 ? cTurn90On.codeUnits : [];
+    bytes += styles.reverse ? cReverseOn.codeUnits : [];
+    bytes += styles.underline ? cUnderline1dot.codeUnits : [];
+    bytes += styles.fontType == PosFontType.fontB ? cFontB.codeUnits : [];
+
     // Characters size
     if (styles.height.value != PosTextSize.size1.value ||
         styles.width.value != PosTextSize.size1.value) {
@@ -464,28 +473,11 @@ class Ticket {
     return blobs;
   }
 
-  /// Print an image using (GS v 0) obsolete command
-  ///
-  /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
-  void imageRaster(
-    Image imgSrc, {
-    PosAlign align = PosAlign.center,
-    bool highDensityHorizontal = true,
-    bool highDensityVertical = true,
-  }) {
+  /// Image rasterization
+  List<int> _toRasterFormat(Image imgSrc) {
     final Image image = Image.from(imgSrc); // make a copy
-
     final int widthPx = image.width;
     final int heightPx = image.height;
-
-    final int widthBytes = (widthPx + 7) ~/ 8;
-    final int densityByte =
-        (highDensityVertical ? 0 : 1) + (highDensityHorizontal ? 0 : 2);
-
-    final List<int> header = List.from(cRasterImg.codeUnits);
-    header.add(densityByte);
-    header.addAll(_intLowHigh(widthBytes, 2));
-    header.addAll(_intLowHigh(heightPx, 2));
 
     grayscale(image);
     invert(image);
@@ -498,28 +490,75 @@ class Ticket {
     }
 
     // Add some empty pixels at the end of each line (to make the width divisible by 8)
-    final targetWidth = (widthPx + 8) - (widthPx % 8);
-    final missingPx = targetWidth - widthPx;
-    final extra = Uint8List(missingPx);
-    for (int i = 0; i < heightPx; i++) {
-      final pos = (i * widthPx + widthPx) + i * missingPx;
-      oneChannelBytes.insertAll(pos, extra);
+    if (widthPx % 8 != 0) {
+      final targetWidth = (widthPx + 8) - (widthPx % 8);
+      final missingPx = targetWidth - widthPx;
+      final extra = Uint8List(missingPx);
+      for (int i = 0; i < heightPx; i++) {
+        final pos = (i * widthPx + widthPx) + i * missingPx;
+        oneChannelBytes.insertAll(pos, extra);
+      }
     }
 
     // Pack bits into bytes
-    final List<int> res = _packBitsIntoBytes(oneChannelBytes);
+    return _packBitsIntoBytes(oneChannelBytes);
+  }
 
-    // Image alignment
-    bytes += latin1.encode(align == PosAlign.left
-        ? cAlignLeft
-        : (align == PosAlign.center ? cAlignCenter : cAlignRight));
+  /// Print an image using (GS v 0) obsolete command
+  ///
+  /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
+  void imageRaster(
+    Image image, {
+    PosAlign align = PosAlign.center,
+    bool highDensityHorizontal = true,
+    bool highDensityVertical = true,
+    PosImageFn imageFn = PosImageFn.bitImageRaster,
+  }) {
+    final int widthPx = image.width;
+    final int heightPx = image.height;
+    final int widthBytes = (widthPx + 7) ~/ 8;
+    final List<int> resterizedData = _toRasterFormat(image);
 
-    bytes += List.from(header)..addAll(res);
+    if (imageFn == PosImageFn.bitImageRaster) {
+      // GS v 0
+      final int densityByte =
+          (highDensityVertical ? 0 : 1) + (highDensityHorizontal ? 0 : 2);
+
+      final List<int> header = List.from(cRasterImg2.codeUnits);
+      header.add(densityByte); // m
+      header.addAll(_intLowHigh(widthBytes, 2)); // xL xH
+      header.addAll(_intLowHigh(heightPx, 2)); // yL yH
+      // Image alignment
+      bytes += latin1.encode(align == PosAlign.left
+          ? cAlignLeft
+          : (align == PosAlign.center ? cAlignCenter : cAlignRight));
+      bytes += List.from(header)..addAll(resterizedData);
+    } else if (imageFn == PosImageFn.graphics) {
+      // 'GS ( L' - FN_112 (Image data)
+      final List<int> header1 = List.from(cRasterImg.codeUnits);
+      header1.addAll(_intLowHigh(widthBytes * heightPx + 10, 2)); // pL pH
+      header1.addAll([48, 112, 48]); // m=48, fn=112, a=48
+      header1.addAll([1, 1]); // bx=1, by=1
+      header1.addAll([49]); // c=49
+      header1.addAll(_intLowHigh(widthBytes, 2)); // xL xH
+      header1.addAll(_intLowHigh(heightPx, 2)); // yL yH
+      // TODO Image alignment
+      // bytes += latin1.encode(align == PosAlign.left
+      //     ? cAlignLeft
+      //     : (align == PosAlign.center ? cAlignCenter : cAlignRight));
+      bytes += List.from(header1)..addAll(resterizedData);
+
+      // 'GS ( L' - FN_50 (Run print)
+      final List<int> header2 = List.from(cRasterImg.codeUnits);
+      header2.addAll([2, 0]); // pL pH
+      header2.addAll([48, 50]); // m fn[2,50]
+      bytes += List.from(header2);
+    }
   }
 
   /// Print a barcode
   ///
-  /// [width] range and units are different depending on the printer model.
+  /// [width] range and units are different depending on the printer model (some printers use 1..5).
   /// [height] range: 1 - 255. The units depend on the printer model.
   /// Width, height, font, text position settings are effective until performing of ESC @, reset or power-off.
   void barcode(
@@ -554,7 +593,13 @@ class Ticket {
 
     // Print barcode
     final header = cBarcodePrint.codeUnits + [barcode.type.value];
-    bytes += header + barcode.data + [0];
+    if (barcode.type.value <= 6) {
+      // Function A
+      bytes += header + barcode.data + [0];
+    } else {
+      // Function B
+      bytes += header + [barcode.data.length] + barcode.data;
+    }
   }
 
   /// Open cash drawer

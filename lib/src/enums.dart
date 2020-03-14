@@ -11,6 +11,11 @@ enum PosCutMode { full, partial }
 enum PosFontType { fontA, fontB }
 enum PosDrawer { pin2, pin5 }
 
+/// Choose image printing function
+/// bitImageRaster: GS v 0 (obsolete)
+/// graphics: GS ( L
+enum PosImageFn { bitImageRaster, graphics }
+
 class PosTextSize {
   const PosTextSize._internal(this.value);
   final int value;
@@ -105,7 +110,7 @@ class PosCodeTable {
   /// Latvian
   static const latvian = PosCodeTable(21);
 
-  /// Arabic
+  /// Arabic (ISO-8859-6)
   static const arabic = PosCodeTable(22);
 
   /// PT1511251
@@ -204,6 +209,15 @@ class PosCodeTable {
   /// PC3012 - Latvian-2
   static const pc3012 = PosCodeTable(87);
 
-  /// Space page
-  static const spacePage = PosCodeTable(255);
+  /// WPC1256 - Arabic
+  static const wp1256 = PosCodeTable(92);
+
+  /// PC720 - Arabic
+  static const pc720 = PosCodeTable(93);
+
+  /// Thai
+  static const thai_2 = PosCodeTable(96);
+
+  /// Thai
+  static const thai_1 = PosCodeTable(255);
 }
