@@ -3,6 +3,7 @@
 * Bug fix: Columns with `PosTextSize` > `size1`
 * Added Barcode Code128
 * Added new code pages
+* `imageRaster` bug fixed
 
 
 ## [0.3.1]

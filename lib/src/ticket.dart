@@ -87,11 +87,12 @@ class Ticket {
     final hexStr = fromPos.round().toRadixString(16).padLeft(3, '0');
     final hexPair = HEX.decode(hexStr);
 
-    bytes += styles.bold ? cBoldOn.codeUnits : <int>[];
-    bytes += styles.turn90 ? cTurn90On.codeUnits : <int>[];
-    bytes += styles.reverse ? cReverseOn.codeUnits : <int>[];
-    bytes += styles.underline ? cUnderline1dot.codeUnits : <int>[];
-    bytes += styles.fontType == PosFontType.fontB ? cFontB.codeUnits : <int>[];
+    bytes += styles.bold ? cBoldOn.codeUnits : [];
+    bytes += styles.turn90 ? cTurn90On.codeUnits : [];
+    bytes += styles.reverse ? cReverseOn.codeUnits : [];
+    bytes += styles.underline ? cUnderline1dot.codeUnits : [];
+    bytes += styles.fontType == PosFontType.fontB ? cFontB.codeUnits : [];
+
     // Characters size
     if (styles.height.value != PosTextSize.size1.value ||
         styles.width.value != PosTextSize.size1.value) {
@@ -504,12 +505,14 @@ class Ticket {
     }
 
     // Add some empty pixels at the end of each line (to make the width divisible by 8)
-    final targetWidth = (widthPx + 8) - (widthPx % 8);
-    final missingPx = targetWidth - widthPx;
-    final extra = Uint8List(missingPx);
-    for (int i = 0; i < heightPx; i++) {
-      final pos = (i * widthPx + widthPx) + i * missingPx;
-      oneChannelBytes.insertAll(pos, extra);
+    if (widthPx % 8 != 0) {
+      final targetWidth = (widthPx + 8) - (widthPx % 8);
+      final missingPx = targetWidth - widthPx;
+      final extra = Uint8List(missingPx);
+      for (int i = 0; i < heightPx; i++) {
+        final pos = (i * widthPx + widthPx) + i * missingPx;
+        oneChannelBytes.insertAll(pos, extra);
+      }
     }
 
     // Pack bits into bytes
