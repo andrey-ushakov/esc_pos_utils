@@ -66,9 +66,11 @@ class Ticket {
 
     // Align
     if (colWidth == 12) {
-      bytes += latin1.encode(styles.align == PosAlign.left
-          ? cAlignLeft
-          : (styles.align == PosAlign.center ? cAlignCenter : cAlignRight));
+      // Skip align left (default align)
+      if (styles.align != PosAlign.left) {
+        bytes += latin1.encode(
+            styles.align == PosAlign.center ? cAlignCenter : cAlignRight);
+      }
     } else {
       // Update fromPos
       final double toPos = _colIndToPosition(colInd + colWidth) - 5;

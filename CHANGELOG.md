@@ -4,6 +4,7 @@
 * Added Barcode Code128
 * Added new code pages
 * `imageRaster` bug fixed
+* Ticket bytecode optimization: do not generate align left command (it's a default value)
 
 
 ## [0.3.1]
