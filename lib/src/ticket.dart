@@ -182,7 +182,7 @@ class Ticket {
       );
       // Ensure at least one line break after the text
       emptyLines(linesAfter + 1);
-      resetStyles();
+      // resetStyles();
     } else {
       _mixedKanji(text, styles: styles, linesAfter: linesAfter);
     }
@@ -196,7 +196,7 @@ class Ticket {
     _text(textBytes, styles: styles);
     // Ensure at least one line break after the text
     emptyLines(linesAfter + 1);
-    resetStyles();
+    // resetStyles();
   }
 
   /// Break text into chinese/non-chinese lexemes
@@ -247,7 +247,7 @@ class Ticket {
     }
 
     emptyLines(linesAfter + 1);
-    resetStyles();
+    // resetStyles();
   }
 
   /// Print selected code table.
@@ -315,7 +315,7 @@ class Ticket {
     }
 
     emptyLines(1);
-    resetStyles();
+    // resetStyles();
   }
 
   /// Beeps [n] times
