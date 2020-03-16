@@ -1,3 +1,7 @@
+## [0.3.3]
+* Slow printing issue on some printer models fixed
+
+
 ## [0.3.2]
 * `PosColumn` can contain encoded text (`textEncoded` field)
 * Bug fix: Columns with `PosTextSize` > `size1`

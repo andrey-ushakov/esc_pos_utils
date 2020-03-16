@@ -25,14 +25,18 @@ class Ticket {
   List<int> bytes = [];
   PosCodeTable _codeTable;
   final PaperSize _paperSize;
+  PosStyles _styles = PosStyles();
+  // bool _isKanji = false;
 
   /// Set global code table which will be used instead of the default printer's code table
+  /// (even after resetting)
   void setGlobalCodeTable(PosCodeTable codeTable) {
     _codeTable = codeTable;
     if (codeTable != null) {
       bytes += Uint8List.fromList(
         List.from(cCodeTable.codeUnits)..add(codeTable.value),
       );
+      _styles = _styles.copyWith(codeTable: codeTable);
     }
   }
 
@@ -46,6 +50,70 @@ class Ticket {
       return latin1.encode(text);
     } else {
       return Uint8List.fromList(gbk_bytes.encode(text));
+    }
+  }
+
+  void setStyles(PosStyles styles, {bool isKanji = false}) {
+    if (styles.align != _styles.align) {
+      bytes += latin1.encode(styles.align == PosAlign.left
+          ? cAlignLeft
+          : (styles.align == PosAlign.center ? cAlignCenter : cAlignRight));
+      _styles = styles.copyWith(align: styles.align);
+    }
+
+    if (styles.bold != _styles.bold) {
+      bytes += styles.bold ? cBoldOn.codeUnits : cBoldOff.codeUnits;
+      _styles = styles.copyWith(bold: styles.bold);
+    }
+    if (styles.turn90 != _styles.turn90) {
+      bytes += styles.turn90 ? cTurn90On.codeUnits : cTurn90Off.codeUnits;
+      _styles = styles.copyWith(turn90: styles.turn90);
+    }
+    if (styles.reverse != _styles.reverse) {
+      bytes += styles.reverse ? cReverseOn.codeUnits : cReverseOff.codeUnits;
+      _styles = styles.copyWith(reverse: styles.reverse);
+    }
+    if (styles.underline != _styles.underline) {
+      bytes +=
+          styles.underline ? cUnderline1dot.codeUnits : cUnderlineOff.codeUnits;
+      _styles = styles.copyWith(underline: styles.underline);
+    }
+    if (styles.fontType != _styles.fontType) {
+      bytes += styles.fontType == PosFontType.fontB
+          ? cFontB.codeUnits
+          : cFontA.codeUnits;
+      _styles = styles.copyWith(fontType: styles.fontType);
+    }
+
+    // Characters size
+    if (styles.height.value != _styles.height.value ||
+        styles.width.value != _styles.width.value) {
+      bytes += Uint8List.fromList(
+        List.from(cSizeGSn.codeUnits)
+          ..add(PosTextSize.decSize(styles.height, styles.width)),
+      );
+      _styles = styles.copyWith(height: styles.height, width: styles.width);
+    }
+
+    // Set local code table
+    if (styles.codeTable != null && styles.codeTable != _styles.codeTable) {
+      bytes += Uint8List.fromList(
+        List.from(cCodeTable.codeUnits)..add(styles.codeTable.value),
+      );
+      _styles =
+          styles.copyWith(align: styles.align, codeTable: styles.codeTable);
+    } else if (_codeTable != null && _codeTable != _styles.codeTable) {
+      bytes += Uint8List.fromList(
+        List.from(cCodeTable.codeUnits)..add(_codeTable.value),
+      );
+      _styles = styles.copyWith(align: styles.align, codeTable: _codeTable);
+    }
+
+    // Set Kanji mode
+    if (isKanji) {
+      bytes += cKanjiOn.codeUnits;
+    } else {
+      bytes += cKanjiOff.codeUnits;
     }
   }
 
@@ -67,10 +135,11 @@ class Ticket {
     // Align
     if (colWidth == 12) {
       // Skip align left (default align)
-      if (styles.align != PosAlign.left) {
-        bytes += latin1.encode(
-            styles.align == PosAlign.center ? cAlignCenter : cAlignRight);
-      }
+      // if (styles.align != PosAlign.left) {
+      //   bytes += latin1.encode(
+      //       styles.align == PosAlign.center ? cAlignCenter : cAlignRight);
+      //   _isDefaultStyles = false;
+      // }
     } else {
       // Update fromPos
       final double toPos = _colIndToPosition(colInd + colWidth) - 5;
@@ -89,39 +158,59 @@ class Ticket {
     final hexStr = fromPos.round().toRadixString(16).padLeft(3, '0');
     final hexPair = HEX.decode(hexStr);
 
-    bytes += styles.bold ? cBoldOn.codeUnits : [];
-    bytes += styles.turn90 ? cTurn90On.codeUnits : [];
-    bytes += styles.reverse ? cReverseOn.codeUnits : [];
-    bytes += styles.underline ? cUnderline1dot.codeUnits : [];
-    bytes += styles.fontType == PosFontType.fontB ? cFontB.codeUnits : [];
+    // if (styles.bold) {
+    //   bytes += cBoldOn.codeUnits;
+    //   _isDefaultStyles = false;
+    // }
+    // if (styles.turn90) {
+    //   bytes += cTurn90On.codeUnits;
+    //   _isDefaultStyles = false;
+    // }
+    // if (styles.reverse) {
+    //   bytes += cReverseOn.codeUnits;
+    //   _isDefaultStyles = false;
+    // }
+    // if (styles.underline) {
+    //   bytes += cUnderline1dot.codeUnits;
+    //   _isDefaultStyles = false;
+    // }
+    // if (styles.fontType == PosFontType.fontB) {
+    //   bytes += cFontB.codeUnits;
+    //   _isDefaultStyles = false;
+    // }
 
-    // Characters size
-    if (styles.height.value != PosTextSize.size1.value ||
-        styles.width.value != PosTextSize.size1.value) {
-      bytes += Uint8List.fromList(
-        List.from(cSizeGSn.codeUnits)
-          ..add(PosTextSize.decSize(styles.height, styles.width)),
-      );
-    }
+    // // Characters size
+    // if (styles.height.value != PosTextSize.size1.value ||
+    //     styles.width.value != PosTextSize.size1.value) {
+    //   bytes += Uint8List.fromList(
+    //     List.from(cSizeGSn.codeUnits)
+    //       ..add(PosTextSize.decSize(styles.height, styles.width)),
+    //   );
+    //   _isDefaultStyles = false;
+    // }
 
     // Position
     bytes += Uint8List.fromList(
       List.from(cPos.codeUnits)..addAll([hexPair[1], hexPair[0]]),
     );
 
-    // Cancel Kanji mode
-    if (kanjiOff) {
-      bytes += cKanjiOff.codeUnits;
-    } else {
-      bytes += cKanjiOn.codeUnits;
-    }
+    // // Cancel Kanji mode
+    // if (kanjiOff) {
+    //   bytes += cKanjiOff.codeUnits;
+    // } else {
+    //   bytes += cKanjiOn.codeUnits;
+    //   _isDefaultStyles = false;
+    // }
 
-    // Set local code table
-    if (styles.codeTable != null) {
-      bytes += Uint8List.fromList(
-        List.from(cCodeTable.codeUnits)..add(styles.codeTable.value),
-      );
-    }
+    // // Set local code table
+    // if (styles.codeTable != null) {
+    //   bytes += Uint8List.fromList(
+    //     List.from(cCodeTable.codeUnits)..add(styles.codeTable.value),
+    //   );
+    //   _isDefaultStyles = false;
+    // }
+
+    setStyles(styles, isKanji: !kanjiOff);
 
     bytes += textBytes;
   }
@@ -148,7 +237,7 @@ class Ticket {
       );
       // Ensure at least one line break after the text
       emptyLines(linesAfter + 1);
-      reset();
+      resetStyles();
     } else {
       _mixedKanji(text, styles: styles, linesAfter: linesAfter);
     }
@@ -162,7 +251,7 @@ class Ticket {
     _text(textBytes, styles: styles);
     // Ensure at least one line break after the text
     emptyLines(linesAfter + 1);
-    reset();
+    resetStyles();
   }
 
   /// Break text into chinese/non-chinese lexemes
@@ -213,7 +302,7 @@ class Ticket {
     }
 
     emptyLines(linesAfter + 1);
-    reset();
+    resetStyles();
   }
 
   /// Print selected code table.
@@ -245,8 +334,8 @@ class Ticket {
   /// A row contains up to 12 columns. A column has a width between 1 and 12.
   /// Total width of columns in one row must be equal 12.
   void row(List<PosColumn> cols) {
-    final validSum = cols.fold(0, (int sum, col) => sum + col.width) == 12;
-    if (!validSum) {
+    final isSumValid = cols.fold(0, (int sum, col) => sum + col.width) == 12;
+    if (!isSumValid) {
       throw Exception('Total columns width must be equal to 12');
     }
 
@@ -281,7 +370,7 @@ class Ticket {
     }
 
     emptyLines(1);
-    reset();
+    resetStyles();
   }
 
   /// Beeps [n] times
@@ -308,6 +397,49 @@ class Ticket {
   void reset() {
     bytes += cInit.codeUnits;
     setGlobalCodeTable(_codeTable);
+    _styles = PosStyles();
+    // _isKanji = false;
+  }
+
+  /// Clear current styles to default ones
+  /// By default it will reset only if the default style was changed.
+  /// [force]=true to force reset (even if styles weren't changed)
+  void resetStyles({bool force: false}) {
+    // TODO make use of force parameter
+    // TODO verify here style-by-style
+
+    // Reset styles keeping global code table
+    setStyles(
+      PosStyles().copyWith(
+        codeTable: _codeTable != null ? _codeTable : PosCodeTable(0),
+      ),
+      isKanji: false,
+    );
+
+    // bytes += cAlignLeft.codeUnits; // this.align = PosAlign.left,
+    // bytes += cBoldOff.codeUnits; //       this.bold = false,
+    // bytes += cTurn90Off.codeUnits; // this.turn90 = false,
+    // bytes += cReverseOff.codeUnits; // this.reverse = false,
+    // bytes += cUnderlineOff.codeUnits; // this.underline = false,
+    // bytes += cFontA.codeUnits; // this.fontType = PosFontType.fontA,
+
+    // // this.height = PosTextSize.size1,
+    // // this.width = PosTextSize.size1,
+    // bytes += Uint8List.fromList(
+    //   List.from(cSizeGSn.codeUnits)
+    //     ..add(PosTextSize.decSize(PosTextSize.size1, PosTextSize.size1)),
+    // );
+
+    // bytes += cKanjiOff.codeUnits;
+
+    // // this.codeTable,
+    // bytes += Uint8List.fromList(
+    //   List.from(cCodeTable.codeUnits)
+    //     ..add(_codeTable != null ? _codeTable.value : 0),
+    // );
+
+    // _styles = PosStyles();
+    // _isKanji = false;
   }
 
   /// Skips [n] lines
@@ -402,6 +534,9 @@ class Ticket {
   ///
   /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
   void image(Image imgSrc, {PosAlign align = PosAlign.center}) {
+    // Image alignment
+    setStyles(_styles.copyWith(align: align));
+
     final Image image = Image.from(imgSrc); // make a copy
     const bool highDensityHorizontal = true;
     const bool highDensityVertical = true;
@@ -428,11 +563,6 @@ class Ticket {
     final List<int> header = List.from(cBitImg.codeUnits);
     header.add(densityByte);
     header.addAll(_intLowHigh(heightPx, 2));
-
-    // Image alignment
-    bytes += latin1.encode(align == PosAlign.left
-        ? cAlignLeft
-        : (align == PosAlign.center ? cAlignCenter : cAlignRight));
 
     // Adjust line spacing (for 16-unit line feeds): ESC 3 0x10 (HEX: 0x1b 0x33 0x10)
     bytes += [27, 51, 16];
@@ -514,6 +644,9 @@ class Ticket {
     bool highDensityVertical = true,
     PosImageFn imageFn = PosImageFn.bitImageRaster,
   }) {
+    // Image alignment
+    setStyles(_styles.copyWith(align: align));
+
     final int widthPx = image.width;
     final int heightPx = image.height;
     final int widthBytes = (widthPx + 7) ~/ 8;
@@ -528,10 +661,6 @@ class Ticket {
       header.add(densityByte); // m
       header.addAll(_intLowHigh(widthBytes, 2)); // xL xH
       header.addAll(_intLowHigh(heightPx, 2)); // yL yH
-      // Image alignment
-      bytes += latin1.encode(align == PosAlign.left
-          ? cAlignLeft
-          : (align == PosAlign.center ? cAlignCenter : cAlignRight));
       bytes += List.from(header)..addAll(resterizedData);
     } else if (imageFn == PosImageFn.graphics) {
       // 'GS ( L' - FN_112 (Image data)
@@ -569,6 +698,9 @@ class Ticket {
     BarcodeText textPos = BarcodeText.below,
     PosAlign align = PosAlign.center,
   }) {
+    // Set alignment
+    setStyles(_styles.copyWith(align: align));
+
     // Set text position
     bytes += cBarcodeSelectPos.codeUnits + [textPos.value];
 
@@ -585,11 +717,6 @@ class Ticket {
     if (height != null && height >= 1 && height <= 255) {
       bytes += cBarcodeSetH.codeUnits + [height];
     }
-
-    // Set alignment
-    bytes += latin1.encode(align == PosAlign.left
-        ? cAlignLeft
-        : (align == PosAlign.center ? cAlignCenter : cAlignRight));
 
     // Print barcode
     final header = cBarcodePrint.codeUnits + [barcode.type.value];

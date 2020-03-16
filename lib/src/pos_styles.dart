@@ -31,4 +31,28 @@ class PosStyles {
   final PosTextSize width;
   final PosFontType fontType;
   final PosCodeTable codeTable;
+
+  PosStyles copyWith({
+    bool bold,
+    bool reverse,
+    bool underline,
+    bool turn90,
+    PosAlign align,
+    PosTextSize height,
+    PosTextSize width,
+    PosFontType fontType,
+    PosCodeTable codeTable,
+  }) {
+    return PosStyles(
+      bold: bold ?? this.bold,
+      reverse: reverse ?? this.reverse,
+      underline: underline ?? this.underline,
+      turn90: turn90 ?? this.turn90,
+      align: align ?? this.align,
+      height: height ?? this.height,
+      width: width ?? this.width,
+      fontType: fontType ?? this.fontType,
+      codeTable: codeTable ?? this.codeTable,
+    );
+  }
 }
