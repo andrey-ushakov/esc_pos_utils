@@ -26,7 +26,6 @@ class Ticket {
   PosCodeTable _codeTable;
   final PaperSize _paperSize;
   PosStyles _styles = PosStyles();
-  // bool _isKanji = false;
 
   /// Set global code table which will be used instead of the default printer's code table
   /// (even after resetting)
@@ -58,31 +57,31 @@ class Ticket {
       bytes += latin1.encode(styles.align == PosAlign.left
           ? cAlignLeft
           : (styles.align == PosAlign.center ? cAlignCenter : cAlignRight));
-      _styles = styles.copyWith(align: styles.align);
+      _styles = _styles.copyWith(align: styles.align);
     }
 
     if (styles.bold != _styles.bold) {
       bytes += styles.bold ? cBoldOn.codeUnits : cBoldOff.codeUnits;
-      _styles = styles.copyWith(bold: styles.bold);
+      _styles = _styles.copyWith(bold: styles.bold);
     }
     if (styles.turn90 != _styles.turn90) {
       bytes += styles.turn90 ? cTurn90On.codeUnits : cTurn90Off.codeUnits;
-      _styles = styles.copyWith(turn90: styles.turn90);
+      _styles = _styles.copyWith(turn90: styles.turn90);
     }
     if (styles.reverse != _styles.reverse) {
       bytes += styles.reverse ? cReverseOn.codeUnits : cReverseOff.codeUnits;
-      _styles = styles.copyWith(reverse: styles.reverse);
+      _styles = _styles.copyWith(reverse: styles.reverse);
     }
     if (styles.underline != _styles.underline) {
       bytes +=
           styles.underline ? cUnderline1dot.codeUnits : cUnderlineOff.codeUnits;
-      _styles = styles.copyWith(underline: styles.underline);
+      _styles = _styles.copyWith(underline: styles.underline);
     }
     if (styles.fontType != _styles.fontType) {
       bytes += styles.fontType == PosFontType.fontB
           ? cFontB.codeUnits
           : cFontA.codeUnits;
-      _styles = styles.copyWith(fontType: styles.fontType);
+      _styles = _styles.copyWith(fontType: styles.fontType);
     }
 
     // Characters size
@@ -92,7 +91,7 @@ class Ticket {
         List.from(cSizeGSn.codeUnits)
           ..add(PosTextSize.decSize(styles.height, styles.width)),
       );
-      _styles = styles.copyWith(height: styles.height, width: styles.width);
+      _styles = _styles.copyWith(height: styles.height, width: styles.width);
     }
 
     // Set local code table
@@ -101,12 +100,12 @@ class Ticket {
         List.from(cCodeTable.codeUnits)..add(styles.codeTable.value),
       );
       _styles =
-          styles.copyWith(align: styles.align, codeTable: styles.codeTable);
+          _styles.copyWith(align: styles.align, codeTable: styles.codeTable);
     } else if (_codeTable != null && _codeTable != _styles.codeTable) {
       bytes += Uint8List.fromList(
         List.from(cCodeTable.codeUnits)..add(_codeTable.value),
       );
-      _styles = styles.copyWith(align: styles.align, codeTable: _codeTable);
+      _styles = _styles.copyWith(align: styles.align, codeTable: _codeTable);
     }
 
     // Set Kanji mode
@@ -133,14 +132,7 @@ class Ticket {
     double fromPos = _colIndToPosition(colInd);
 
     // Align
-    if (colWidth == 12) {
-      // Skip align left (default align)
-      // if (styles.align != PosAlign.left) {
-      //   bytes += latin1.encode(
-      //       styles.align == PosAlign.center ? cAlignCenter : cAlignRight);
-      //   _isDefaultStyles = false;
-      // }
-    } else {
+    if (colWidth != 12) {
       // Update fromPos
       final double toPos = _colIndToPosition(colInd + colWidth) - 5;
       final double textLen = textBytes.length * charWidth;
@@ -158,57 +150,10 @@ class Ticket {
     final hexStr = fromPos.round().toRadixString(16).padLeft(3, '0');
     final hexPair = HEX.decode(hexStr);
 
-    // if (styles.bold) {
-    //   bytes += cBoldOn.codeUnits;
-    //   _isDefaultStyles = false;
-    // }
-    // if (styles.turn90) {
-    //   bytes += cTurn90On.codeUnits;
-    //   _isDefaultStyles = false;
-    // }
-    // if (styles.reverse) {
-    //   bytes += cReverseOn.codeUnits;
-    //   _isDefaultStyles = false;
-    // }
-    // if (styles.underline) {
-    //   bytes += cUnderline1dot.codeUnits;
-    //   _isDefaultStyles = false;
-    // }
-    // if (styles.fontType == PosFontType.fontB) {
-    //   bytes += cFontB.codeUnits;
-    //   _isDefaultStyles = false;
-    // }
-
-    // // Characters size
-    // if (styles.height.value != PosTextSize.size1.value ||
-    //     styles.width.value != PosTextSize.size1.value) {
-    //   bytes += Uint8List.fromList(
-    //     List.from(cSizeGSn.codeUnits)
-    //       ..add(PosTextSize.decSize(styles.height, styles.width)),
-    //   );
-    //   _isDefaultStyles = false;
-    // }
-
     // Position
     bytes += Uint8List.fromList(
       List.from(cPos.codeUnits)..addAll([hexPair[1], hexPair[0]]),
     );
-
-    // // Cancel Kanji mode
-    // if (kanjiOff) {
-    //   bytes += cKanjiOff.codeUnits;
-    // } else {
-    //   bytes += cKanjiOn.codeUnits;
-    //   _isDefaultStyles = false;
-    // }
-
-    // // Set local code table
-    // if (styles.codeTable != null) {
-    //   bytes += Uint8List.fromList(
-    //     List.from(cCodeTable.codeUnits)..add(styles.codeTable.value),
-    //   );
-    //   _isDefaultStyles = false;
-    // }
 
     setStyles(styles, isKanji: !kanjiOff);
 
@@ -398,16 +343,11 @@ class Ticket {
     bytes += cInit.codeUnits;
     setGlobalCodeTable(_codeTable);
     _styles = PosStyles();
-    // _isKanji = false;
   }
 
   /// Clear current styles to default ones
-  /// By default it will reset only if the default style was changed.
-  /// [force]=true to force reset (even if styles weren't changed)
-  void resetStyles({bool force: false}) {
-    // TODO make use of force parameter
-    // TODO verify here style-by-style
-
+  /// It will reset only if the default style was changed.
+  void resetStyles() {
     // Reset styles keeping global code table
     setStyles(
       PosStyles().copyWith(
@@ -415,31 +355,6 @@ class Ticket {
       ),
       isKanji: false,
     );
-
-    // bytes += cAlignLeft.codeUnits; // this.align = PosAlign.left,
-    // bytes += cBoldOff.codeUnits; //       this.bold = false,
-    // bytes += cTurn90Off.codeUnits; // this.turn90 = false,
-    // bytes += cReverseOff.codeUnits; // this.reverse = false,
-    // bytes += cUnderlineOff.codeUnits; // this.underline = false,
-    // bytes += cFontA.codeUnits; // this.fontType = PosFontType.fontA,
-
-    // // this.height = PosTextSize.size1,
-    // // this.width = PosTextSize.size1,
-    // bytes += Uint8List.fromList(
-    //   List.from(cSizeGSn.codeUnits)
-    //     ..add(PosTextSize.decSize(PosTextSize.size1, PosTextSize.size1)),
-    // );
-
-    // bytes += cKanjiOff.codeUnits;
-
-    // // this.codeTable,
-    // bytes += Uint8List.fromList(
-    //   List.from(cCodeTable.codeUnits)
-    //     ..add(_codeTable != null ? _codeTable.value : 0),
-    // );
-
-    // _styles = PosStyles();
-    // _isKanji = false;
   }
 
   /// Skips [n] lines
