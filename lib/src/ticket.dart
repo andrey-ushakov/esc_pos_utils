@@ -586,10 +586,6 @@ class Ticket {
       header1.addAll([49]); // c=49
       header1.addAll(_intLowHigh(widthBytes, 2)); // xL xH
       header1.addAll(_intLowHigh(heightPx, 2)); // yL yH
-      // TODO Image alignment
-      // bytes += latin1.encode(align == PosAlign.left
-      //     ? cAlignLeft
-      //     : (align == PosAlign.center ? cAlignCenter : cAlignRight));
       bytes += List.from(header1)..addAll(resterizedData);
 
       // 'GS ( L' - FN_50 (Run print)
@@ -651,5 +647,13 @@ class Ticket {
     } else {
       bytes += cCashDrawerPin5.codeUnits;
     }
+  }
+
+  /// Print horizontal full width separator
+  /// If [len] is null, then it will be defined according to the paper width
+  void hr({String ch = '-', int len, linesAfter = 0}) {
+    int n = len != null ? len : _paperSize == PaperSize.mm58 ? 32 : 48;
+    String ch1 = ch.length == 1 ? ch : ch[0];
+    text(List.filled(n, ch1).join(), linesAfter: linesAfter);
   }
 }

@@ -1,3 +1,7 @@
+## [0.3.4]
+* Added hr method
+
+
 ## [0.3.3]
 * Slow printing issue on some printer models fixed
 
