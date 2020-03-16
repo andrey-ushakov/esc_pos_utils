@@ -450,7 +450,7 @@ class Ticket {
   /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
   void image(Image imgSrc, {PosAlign align = PosAlign.center}) {
     // Image alignment
-    setStyles(_styles.copyWith(align: align));
+    setStyles(PosStyles().copyWith(align: align));
 
     final Image image = Image.from(imgSrc); // make a copy
     const bool highDensityHorizontal = true;
@@ -560,7 +560,7 @@ class Ticket {
     PosImageFn imageFn = PosImageFn.bitImageRaster,
   }) {
     // Image alignment
-    setStyles(_styles.copyWith(align: align));
+    setStyles(PosStyles().copyWith(align: align));
 
     final int widthPx = image.width;
     final int heightPx = image.height;
@@ -610,7 +610,7 @@ class Ticket {
     PosAlign align = PosAlign.center,
   }) {
     // Set alignment
-    setStyles(_styles.copyWith(align: align));
+    setStyles(PosStyles().copyWith(align: align));
 
     // Set text position
     bytes += cBarcodeSelectPos.codeUnits + [textPos.value];

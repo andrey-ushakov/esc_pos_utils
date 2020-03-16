@@ -1,5 +1,7 @@
 ## [0.3.4]
 * Added hr method
+* Updated commands (using hex codes)
+* setStyles bug fix
 
 
 ## [0.3.3]
