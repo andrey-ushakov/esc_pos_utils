@@ -44,8 +44,8 @@ class Ticket {
     return colInd == 0 ? 0 : (width * colInd / 11 - 1);
   }
 
-  Uint8List _encode(String text, {bool kanjiOff = true}) {
-    if (kanjiOff) {
+  Uint8List _encode(String text, {bool isKanji = false}) {
+    if (!isKanji) {
       return latin1.encode(text);
     } else {
       return Uint8List.fromList(gbk_bytes.encode(text));
@@ -123,7 +123,7 @@ class Ticket {
     Uint8List textBytes, {
     PosStyles styles = const PosStyles(),
     int colInd = 0,
-    bool kanjiOff = true,
+    bool isKanji = false,
     int colWidth = 12,
   }) {
     // 48 symbols per line for 80mm and 32 for 58mm
@@ -155,14 +155,14 @@ class Ticket {
       List.from(cPos.codeUnits)..addAll([hexPair[1], hexPair[0]]),
     );
 
-    setStyles(styles, isKanji: !kanjiOff);
+    setStyles(styles, isKanji: isKanji);
 
     bytes += textBytes;
   }
 
   /// Sens raw command(s)
-  void rawBytes(List<int> cmd, {bool kanjiOff = true}) {
-    if (kanjiOff) {
+  void rawBytes(List<int> cmd, {bool isKanji = false}) {
+    if (!isKanji) {
       bytes += cKanjiOff.codeUnits;
     }
     bytes += Uint8List.fromList(cmd);
@@ -176,9 +176,9 @@ class Ticket {
   }) {
     if (!containsChinese) {
       _text(
-        _encode(text, kanjiOff: !containsChinese),
+        _encode(text, isKanji: containsChinese),
         styles: styles,
-        kanjiOff: !containsChinese,
+        isKanji: containsChinese,
       );
       // Ensure at least one line break after the text
       emptyLines(linesAfter + 1);
@@ -240,9 +240,9 @@ class Ticket {
     // Print each lexeme using codetable OR kanji
     for (var i = 0; i < lexemes.length; ++i) {
       _text(
-        _encode(lexemes[i], kanjiOff: !isLexemeChinese[i]),
+        _encode(lexemes[i], isKanji: isLexemeChinese[i]),
         styles: styles,
-        kanjiOff: !isLexemeChinese[i],
+        isKanji: isLexemeChinese[i],
       );
     }
 
@@ -304,11 +304,11 @@ class Ticket {
         // Print each lexeme using codetable OR kanji
         for (var j = 0; j < lexemes.length; ++j) {
           _text(
-            _encode(lexemes[j], kanjiOff: !isLexemeChinese[j]),
+            _encode(lexemes[j], isKanji: isLexemeChinese[j]),
             styles: cols[i].styles,
             colInd: colInd,
             colWidth: cols[i].width,
-            kanjiOff: !isLexemeChinese[j],
+            isKanji: isLexemeChinese[j],
           );
         }
       }

@@ -1,3 +1,7 @@
+## [0.3.5]
+* Code refactoring: `kanjiOff` renamed to `isKanji`
+
+
 ## [0.3.4]
 * Added hr method
 * Updated commands (using hex codes)
