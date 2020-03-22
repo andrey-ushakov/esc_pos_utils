@@ -1,5 +1,6 @@
 ## [0.3.5]
 * Code refactoring: `kanjiOff` renamed to `isKanji`
+* `Ticket.codeTable` renamed to `Ticket.printCodeTable`
 
 
 ## [0.3.4]

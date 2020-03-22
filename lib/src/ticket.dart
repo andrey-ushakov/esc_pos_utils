@@ -25,6 +25,7 @@ class Ticket {
   List<int> bytes = [];
   PosCodeTable _codeTable;
   final PaperSize _paperSize;
+  // Current styles
   PosStyles _styles = PosStyles();
 
   /// Set global code table which will be used instead of the default printer's code table
@@ -254,7 +255,7 @@ class Ticket {
   ///
   /// If [codeTable] is null, global code table is used.
   /// If global code table is null, default printer code table is used.
-  void codeTable({PosCodeTable codeTable}) {
+  void printCodeTable({PosCodeTable codeTable}) {
     bytes += cKanjiOff.codeUnits;
 
     if (codeTable != null) {
@@ -263,12 +264,7 @@ class Ticket {
       );
     }
 
-    final List<int> list = [];
-    for (int i = 0; i < 256; i++) {
-      list.add(i);
-    }
-
-    bytes += Uint8List.fromList(list);
+    bytes += Uint8List.fromList(List<int>.generate(256, (i) => i));
 
     // Back to initial code table
     setGlobalCodeTable(_codeTable);
