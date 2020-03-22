@@ -1,6 +1,8 @@
 ## [0.3.5]
-* Code refactoring: `kanjiOff` renamed to `isKanji`
+* Added `Ticket.setGlobalFont` method
 * `Ticket.codeTable` renamed to `Ticket.printCodeTable`
+* Added `maxCharsPerLine` custom config + default values depending on current font and ticket size
+* Code refactoring
 
 
 ## [0.3.4]

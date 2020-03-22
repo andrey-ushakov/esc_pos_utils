@@ -22,11 +22,14 @@ class Ticket {
     reset();
   }
 
+  // Output bytecode
   List<int> bytes = [];
-  PosCodeTable _codeTable;
-  // Global styles
-  PosFontType _font;
+  // Ticket config
   final PaperSize _paperSize;
+  int _maxCharsPerLine;
+  // Global styles
+  PosCodeTable _codeTable;
+  PosFontType _font;
   // Current styles
   PosStyles _styles = PosStyles();
 
@@ -44,10 +47,10 @@ class Ticket {
 
   /// Set global font which will be used instead of the default printer's font
   /// (even after resetting)
-  void setGlobalFont(PosFontType font) {
+  void setGlobalFont(PosFontType font, {int maxCharsPerLine}) {
     _font = font;
     if (font != null) {
-      print('SET GLOBAL FONT');
+      _maxCharsPerLine = maxCharsPerLine ?? _getMaxCharsPerLine(font);
       bytes += font == PosFontType.fontB ? cFontB.codeUnits : cFontA.codeUnits;
       _styles = _styles.copyWith(fontType: font);
     }
@@ -55,7 +58,7 @@ class Ticket {
 
   double _colIndToPosition(int colInd) {
     final int width = _paperSize.width;
-    return colInd == 0 ? 0 : (width * colInd / 11 - 1);
+    return colInd == 0 ? 0 : (width * colInd / 12 - 1);
   }
 
   Uint8List _encode(String text, {bool isKanji = false}) {
@@ -135,6 +138,14 @@ class Ticket {
     }
   }
 
+  int _getMaxCharsPerLine(PosFontType font) {
+    if (_paperSize == PaperSize.mm58) {
+      return (font == null || font == PosFontType.fontA) ? 32 : 42;
+    } else {
+      return (font == null || font == PosFontType.fontA) ? 48 : 64;
+    }
+  }
+
   /// Generic print for internal use
   ///
   /// [colInd] range: 0..11
@@ -144,10 +155,23 @@ class Ticket {
     int colInd = 0,
     bool isKanji = false,
     int colWidth = 12,
+    int maxCharsPerLine,
   }) {
-    // 48 symbols per line for 80mm and 32 for 58mm
+    // Calculate maxCharsPerLine
+    int charsPerLine;
+    if (maxCharsPerLine != null) {
+      charsPerLine = maxCharsPerLine;
+    } else {
+      if (styles.fontType != null) {
+        charsPerLine = _getMaxCharsPerLine(styles.fontType);
+      } else {
+        charsPerLine =
+            _maxCharsPerLine ?? _getMaxCharsPerLine(_styles.fontType);
+      }
+    }
+
     // charWidth = default width * text size multiplier
-    double charWidth = 11.625 * styles.width.value;
+    double charWidth = (_paperSize.width / charsPerLine) * styles.width.value;
     double fromPos = _colIndToPosition(colInd);
 
     // Align
@@ -192,12 +216,14 @@ class Ticket {
     PosStyles styles = const PosStyles(),
     int linesAfter = 0,
     bool containsChinese = false,
+    int maxCharsPerLine,
   }) {
     if (!containsChinese) {
       _text(
         _encode(text, isKanji: containsChinese),
         styles: styles,
         isKanji: containsChinese,
+        maxCharsPerLine: maxCharsPerLine,
       );
       // Ensure at least one line break after the text
       emptyLines(linesAfter + 1);
@@ -211,8 +237,9 @@ class Ticket {
     Uint8List textBytes, {
     PosStyles styles = const PosStyles(),
     int linesAfter = 0,
+    int maxCharsPerLine,
   }) {
-    _text(textBytes, styles: styles);
+    _text(textBytes, styles: styles, maxCharsPerLine: maxCharsPerLine);
     // Ensure at least one line break after the text
     emptyLines(linesAfter + 1);
     // resetStyles();
@@ -251,6 +278,7 @@ class Ticket {
     String text, {
     PosStyles styles = const PosStyles(),
     int linesAfter = 0,
+    int maxCharsPerLine,
   }) {
     final list = _getLexemes(text);
     final List<String> lexemes = list[0];
@@ -262,6 +290,7 @@ class Ticket {
         _encode(lexemes[i], isKanji: isLexemeChinese[i]),
         styles: styles,
         isKanji: isLexemeChinese[i],
+        maxCharsPerLine: maxCharsPerLine,
       );
     }
 
@@ -655,7 +684,7 @@ class Ticket {
   /// Print horizontal full width separator
   /// If [len] is null, then it will be defined according to the paper width
   void hr({String ch = '-', int len, linesAfter = 0}) {
-    int n = len != null ? len : _paperSize == PaperSize.mm58 ? 32 : 48;
+    int n = len ?? _maxCharsPerLine ?? _getMaxCharsPerLine(_styles.fontType);
     String ch1 = ch.length == 1 ? ch : ch[0];
     text(List.filled(n, ch1).join(), linesAfter: linesAfter);
   }
