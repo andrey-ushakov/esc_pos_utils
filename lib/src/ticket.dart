@@ -24,6 +24,8 @@ class Ticket {
 
   List<int> bytes = [];
   PosCodeTable _codeTable;
+  // Global styles
+  PosFontType _font;
   final PaperSize _paperSize;
   // Current styles
   PosStyles _styles = PosStyles();
@@ -37,6 +39,17 @@ class Ticket {
         List.from(cCodeTable.codeUnits)..add(codeTable.value),
       );
       _styles = _styles.copyWith(codeTable: codeTable);
+    }
+  }
+
+  /// Set global font which will be used instead of the default printer's font
+  /// (even after resetting)
+  void setGlobalFont(PosFontType font) {
+    _font = font;
+    if (font != null) {
+      print('SET GLOBAL FONT');
+      bytes += font == PosFontType.fontB ? cFontB.codeUnits : cFontA.codeUnits;
+      _styles = _styles.copyWith(fontType: font);
     }
   }
 
@@ -78,11 +91,16 @@ class Ticket {
           styles.underline ? cUnderline1dot.codeUnits : cUnderlineOff.codeUnits;
       _styles = _styles.copyWith(underline: styles.underline);
     }
-    if (styles.fontType != _styles.fontType) {
+
+    // Set font
+    if (styles.fontType != null && styles.fontType != _styles.fontType) {
       bytes += styles.fontType == PosFontType.fontB
           ? cFontB.codeUnits
           : cFontA.codeUnits;
       _styles = _styles.copyWith(fontType: styles.fontType);
+    } else if (_font != null && _font != _styles.fontType) {
+      bytes += _font == PosFontType.fontB ? cFontB.codeUnits : cFontA.codeUnits;
+      _styles = _styles.copyWith(fontType: _font);
     }
 
     // Characters size
@@ -337,20 +355,9 @@ class Ticket {
   /// Clear the buffer and reset text styles
   void reset() {
     bytes += cInit.codeUnits;
-    setGlobalCodeTable(_codeTable);
     _styles = PosStyles();
-  }
-
-  /// Clear current styles to default ones
-  /// It will reset only if the default style was changed.
-  void resetStyles() {
-    // Reset styles keeping global code table
-    setStyles(
-      PosStyles().copyWith(
-        codeTable: _codeTable != null ? _codeTable : PosCodeTable(0),
-      ),
-      isKanji: false,
-    );
+    setGlobalCodeTable(_codeTable);
+    setGlobalFont(_font);
   }
 
   /// Skips [n] lines
