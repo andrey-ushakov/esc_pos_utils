@@ -8,6 +8,7 @@
 
 import 'dart:convert';
 import 'dart:typed_data' show Uint8List;
+import 'package:esc_pos_utils/src/qrcode.dart';
 import 'package:gbk_codec/gbk_codec.dart';
 import 'package:hex/hex.dart';
 import 'package:image/image.dart';
@@ -626,6 +627,14 @@ class Ticket {
       header2.addAll([48, 50]); // m fn[2,50]
       bytes += List.from(header2);
     }
+  }
+
+  void qrcode(
+    QRCode code
+  ) {
+    // 固定头部，表明下面我要开始发功了
+    bytes += [0x1b, 0x40];
+    bytes += code.data;
   }
 
   /// Print a barcode
