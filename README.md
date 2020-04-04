@@ -114,7 +114,12 @@ ticket.barcode(Barcode.upcA(barData));
 
 ### Print a QR Code:
 
-To print a QR Code, add [qr_flutter](https://pub.dev/packages/qr_flutter) and [path_provider](https://pub.dev/packages/path_provider) as a dependency in your `pubspec.yaml` file.
+Using native ESC/POS commands:
+```dart
+ticket.qrcode('example.com');
+```
+
+To print a QR Code as an image (if your printer doesn't support native commands), add [qr_flutter](https://pub.dev/packages/qr_flutter) and [path_provider](https://pub.dev/packages/path_provider) as a dependency in your `pubspec.yaml` file.
 ```dart
 String qrData = "google.com";
 const double qrSize = 200;

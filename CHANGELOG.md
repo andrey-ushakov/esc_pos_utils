@@ -1,3 +1,7 @@
+## [0.3.6]
+* Print QR Codes using native function
+
+
 ## [0.3.5]
 * Added `Ticket.setGlobalFont` method
 * `Ticket.codeTable` renamed to `Ticket.printCodeTable`
