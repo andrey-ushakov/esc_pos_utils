@@ -16,6 +16,7 @@ import 'commands.dart';
 import 'enums.dart';
 import 'pos_column.dart';
 import 'pos_styles.dart';
+import 'qrcode.dart';
 
 class Ticket {
   Ticket(this._paperSize) {
@@ -670,6 +671,17 @@ class Ticket {
       // Function B
       bytes += header + [barcode.data.length] + barcode.data;
     }
+  }
+
+  /// Print a QR Code
+  void qrcode(String text,
+      {PosAlign align = PosAlign.center,
+      QRSize size = QRSize.Size4,
+      QRCorrection cor = QRCorrection.L}) {
+    // Set alignment
+    setStyles(PosStyles().copyWith(align: align));
+    QRCode qr = QRCode(text, size, cor);
+    bytes += qr.bytes;
   }
 
   /// Open cash drawer

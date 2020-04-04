@@ -1,11 +1,13 @@
 import 'package:esc_pos_utils/src/commands.dart';
-import 'enums.dart';
 import 'dart:convert';
 
 class QRSize {
   const QRSize(this.value);
   final int value;
 
+  static const Size1 = QRSize(0x01);
+  static const Size2 = QRSize(0x02);
+  static const Size3 = QRSize(0x03);
   static const Size4 = QRSize(0x04);
   static const Size5 = QRSize(0x05);
   static const Size6 = QRSize(0x06);
@@ -36,40 +38,26 @@ class QRCode {
 
   QRCode(String text, QRSize size, QRCorrection level) {
     // FN 167. QR Code: Set the size of module
-    // bytes += List.from(cQrHeader.codeUnits)
-    //   ..addAll([0x03, 0x00, 0x31, 0x43]) // pL pH cn fn
-    //   ..add(size.value);
+    // pL pH cn fn n
     bytes += cQrHeader.codeUnits + [0x03, 0x00, 0x31, 0x43] + [size.value];
 
     // FN 169. QR Code: Select the error correction level
-    // bytes += List.from(cQrHeader.codeUnits)
-    //   ..addAll([0x03, 0x00, 0x31, 0x45]) // pL pH cn fn
-    //   ..add(level.value);
+    // pL pH cn fn n
     bytes += cQrHeader.codeUnits + [0x03, 0x00, 0x31, 0x45] + [level.value];
 
     // FN 180. QR Code: Store the data in the symbol storage area
     List<int> textBytes = latin1.encode(text);
-    // bytes += List.from(cQrHeader.codeUnits)
     // pL pH cn fn m
-    // ..addAll([textBytes.length + 3, 0x00, 0x31, 0x50, 0x30]);
     bytes +=
         cQrHeader.codeUnits + [textBytes.length + 3, 0x00, 0x31, 0x50, 0x30];
     bytes += textBytes;
 
-    // TODO
-    // Set QR code location
-    // _data += [0x1b, 0x61, align.index];
-
     // FN 182. QR Code: Transmit the size information of the symbol data in the symbol storage area
-    // bytes += List.from(cQrHeader.codeUnits)
-    //   // pL pH cn fn m
-    //   ..addAll([0x03, 0x00, 0x31, 0x52, 0x30]);
+    // pL pH cn fn m
     bytes += cQrHeader.codeUnits + [0x03, 0x00, 0x31, 0x52, 0x30];
 
     // FN 181. QR Code: Print the symbol data in the symbol storage area
-    // bytes += List.from(cQrHeader.codeUnits)
-    //   // pL pH cn fn m
-    //   ..addAll([0x03, 0x00, 0x31, 0x51, 0x30]);
+    // pL pH cn fn m
     bytes += cQrHeader.codeUnits + [0x03, 0x00, 0x31, 0x51, 0x30];
   }
 }

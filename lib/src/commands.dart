@@ -63,3 +63,6 @@ const cBarcodePrint = '${gs}k'; // Print barcode
 // Cash Drawer Open
 const cCashDrawerPin2 = '${esc}p030';
 const cCashDrawerPin5 = '${esc}p130';
+
+// QR Code
+const cQrHeader = '$gs(k';
