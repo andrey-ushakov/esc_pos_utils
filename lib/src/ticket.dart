@@ -157,6 +157,7 @@ class Ticket {
     bool isKanji = false,
     int colWidth = 12,
     int maxCharsPerLine,
+    bool inline
   }) {
     // Calculate maxCharsPerLine
     int charsPerLine;
@@ -195,9 +196,11 @@ class Ticket {
     final hexPair = HEX.decode(hexStr);
 
     // Position
-    bytes += Uint8List.fromList(
-      List.from(cPos.codeUnits)..addAll([hexPair[1], hexPair[0]]),
-    );
+    if(!inline){
+      bytes += Uint8List.fromList(
+        List.from(cPos.codeUnits)..addAll([hexPair[1], hexPair[0]]),
+      );
+    }
 
     setStyles(styles, isKanji: isKanji);
 
@@ -292,6 +295,7 @@ class Ticket {
         styles: styles,
         isKanji: isLexemeChinese[i],
         maxCharsPerLine: maxCharsPerLine,
+        inline: i>0
       );
     }
 
@@ -353,6 +357,7 @@ class Ticket {
             colInd: colInd,
             colWidth: cols[i].width,
             isKanji: isLexemeChinese[j],
+            inline: j>0
           );
         }
       }
