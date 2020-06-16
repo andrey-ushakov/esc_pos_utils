@@ -1,5 +1,10 @@
+## [0.4.0]
+* PosCodeTable replaced by CapabilitiesProfile
+
+
 ## [0.3.7]
 * Fixed merged text on some printers when using chinese + latin together in one string
+
 
 ## [0.3.6]
 * Print QR Codes using native function
