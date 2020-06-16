@@ -44,4 +44,28 @@ class CapabilityProfile {
     }
     return id;
   }
+
+  static Future<List<dynamic>> getAvailableProfiles() async {
+    var resource =
+        Resource("package:esc_pos_utils/resources/capabilities.json");
+    var string = await resource.readAsString(encoding: utf8);
+    Map capabilities = json.decode(string);
+
+    var profiles = capabilities['profiles'];
+
+    List<dynamic> res = [];
+
+    profiles.forEach((k, v) {
+      res.add({
+        'key': k,
+        'vendor': v['vendor'] is String ? v['vendor'] : '',
+        'model': v['model'] is String ? v['model'] : '',
+        'description': v['description'] is String ? v['description'] : '',
+      });
+    });
+
+    print(res);
+
+    return res;
+  }
 }
