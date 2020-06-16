@@ -8,6 +8,7 @@
 
 import 'dart:convert';
 import 'dart:typed_data' show Uint8List;
+import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:gbk_codec/gbk_codec.dart';
 import 'package:hex/hex.dart';
 import 'package:image/image.dart';
@@ -19,7 +20,7 @@ import 'pos_styles.dart';
 import 'qrcode.dart';
 
 class Ticket {
-  Ticket(this._paperSize) {
+  Ticket(this._paperSize, this._profile) {
     reset();
   }
 
@@ -27,20 +28,21 @@ class Ticket {
   List<int> bytes = [];
   // Ticket config
   final PaperSize _paperSize;
+  CapabilityProfile _profile;
   int _maxCharsPerLine;
   // Global styles
-  PosCodeTable _codeTable;
+  String _codeTable;
   PosFontType _font;
   // Current styles
   PosStyles _styles = PosStyles();
 
   /// Set global code table which will be used instead of the default printer's code table
   /// (even after resetting)
-  void setGlobalCodeTable(PosCodeTable codeTable) {
+  void setGlobalCodeTable(String codeTable) {
     _codeTable = codeTable;
     if (codeTable != null) {
       bytes += Uint8List.fromList(
-        List.from(cCodeTable.codeUnits)..add(codeTable.value),
+        List.from(cCodeTable.codeUnits)..add(_profile.getCodePageId(codeTable)),
       );
       _styles = _styles.copyWith(codeTable: codeTable);
     }
@@ -120,13 +122,15 @@ class Ticket {
     // Set local code table
     if (styles.codeTable != null && styles.codeTable != _styles.codeTable) {
       bytes += Uint8List.fromList(
-        List.from(cCodeTable.codeUnits)..add(styles.codeTable.value),
+        List.from(cCodeTable.codeUnits)
+          ..add(_profile.getCodePageId(styles.codeTable)),
       );
       _styles =
           _styles.copyWith(align: styles.align, codeTable: styles.codeTable);
     } else if (_codeTable != null && _codeTable != _styles.codeTable) {
       bytes += Uint8List.fromList(
-        List.from(cCodeTable.codeUnits)..add(_codeTable.value),
+        List.from(cCodeTable.codeUnits)
+          ..add(_profile.getCodePageId(_codeTable)),
       );
       _styles = _styles.copyWith(align: styles.align, codeTable: _codeTable);
     }
@@ -309,12 +313,12 @@ class Ticket {
   ///
   /// If [codeTable] is null, global code table is used.
   /// If global code table is null, default printer code table is used.
-  void printCodeTable({PosCodeTable codeTable}) {
+  void printCodeTable({String codeTable}) {
     bytes += cKanjiOff.codeUnits;
 
     if (codeTable != null) {
       bytes += Uint8List.fromList(
-        List.from(cCodeTable.codeUnits)..add(codeTable.value),
+        List.from(cCodeTable.codeUnits)..add(_profile.getCodePageId(codeTable)),
       );
     }
 

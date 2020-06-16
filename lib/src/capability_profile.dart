@@ -33,4 +33,15 @@ class CapabilityProfile {
 
   String name;
   Map<String, int> codePages;
+
+  int getCodePageId(String codePage) {
+    if (codePages == null) {
+      throw Exception("The CapabilityProfile isn't initialized");
+    }
+    int id = codePages[codePage];
+    if (id == null) {
+      throw Exception("Code Page '$codePage' isn't defined for this profile");
+    }
+    return id;
+  }
 }
