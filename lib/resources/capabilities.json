@@ -1,45 +1,4 @@
 {
-    "encodings": {
-        "CP437": {
-            "description": "Std. Europe"
-        },
-        "CP850": {
-            "description": "Multilingual"
-        },
-        "CP852": {
-            "description": ""
-        },
-        "CP858": {
-            "description": ""
-        },
-        "CP860": {
-            "description": "Portuguese"
-        },
-        "CP862": {
-            "description": "Hebrew"
-        },
-        "CP863": {
-            "description": "Canadian"
-        },
-        "CP865": {
-            "description": "Nordic"
-        },
-        "CP866": {
-            "description": "Cyrillic"
-        },
-        "CP932": {
-            "description": "Japanese (Katakana)"
-        },
-        "CP1251": {
-            "description": "Cyrillic"
-        },
-        "CP1252": {
-            "description": "West. Europe (Latin-1)"
-        },
-        "ISO_8859-1": {
-            "description": "West. Europe (Latin-1)"
-        }
-    },
     "profiles": {
         "default": {
             "codePages": {
