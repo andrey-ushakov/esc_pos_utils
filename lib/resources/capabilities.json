@@ -1,0 +1,76 @@
+{
+    "encodings": {
+        "CP437": {
+            "description": "Std. Europe"
+        },
+        "CP850": {
+            "description": "Multilingual"
+        },
+        "CP852": {
+            "description": ""
+        },
+        "CP858": {
+            "description": ""
+        },
+        "CP860": {
+            "description": "Portuguese"
+        },
+        "CP862": {
+            "description": "Hebrew"
+        },
+        "CP863": {
+            "description": "Canadian"
+        },
+        "CP865": {
+            "description": "Nordic"
+        },
+        "CP866": {
+            "description": "Cyrillic"
+        },
+        "CP932": {
+            "description": "Japanese (Katakana)"
+        },
+        "CP1251": {
+            "description": "Cyrillic"
+        },
+        "CP1252": {
+            "description": "West. Europe (Latin-1)"
+        },
+        "ISO_8859-1": {
+            "description": "West. Europe (Latin-1)"
+        }
+    },
+    "profiles": {
+        "default": {
+            "codePages": {
+                "CP437": 0,
+                "CP932": 1,
+                "CP850": 2,
+                "CP860": 3,
+                "CP863": 4,
+                "CP865": 5,
+                "CP1252": 6
+            },
+            "vendor": "Generic",
+            "model": "Default",
+            "description": "Default ESC/POS profile"
+        },
+        "RP80USE": {
+            "codePages": {
+                "CP437": 0,
+                "CP932": 1,
+                "CP850": 2,
+                "CP860": 3,
+                "CP863": 4,
+                "CP865": 5,
+                "CP1251": 6,
+                "CP866": 7,
+                "CP862": 15,
+                "CP1252": 16
+            },
+            "vendor": "Rongta",
+            "model": "RP80USE",
+            "description": ""
+        }
+    }
+}

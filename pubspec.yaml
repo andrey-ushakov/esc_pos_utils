@@ -12,6 +12,7 @@ dependencies:
   hex: ^0.1.2
   gbk_codec: ^0.3.2
   image: ^2.1.4
+  resource: ^2.1.6
 
 dev_dependencies:
   flutter_test:
