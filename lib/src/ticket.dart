@@ -149,7 +149,7 @@ class Ticket {
 
   /// Generic print for internal use
   ///
-  /// [colInd] range: 0..11
+  /// [colInd] range: 0..11. If null: do not define the position
   void _text(
     Uint8List textBytes, {
     PosStyles styles = const PosStyles(),
@@ -171,33 +171,35 @@ class Ticket {
       }
     }
 
-    // charWidth = default width * text size multiplier
-    double charWidth = (_paperSize.width / charsPerLine) * styles.width.value;
-    double fromPos = _colIndToPosition(colInd);
+    if (colInd != null) {
+      // charWidth = default width * text size multiplier
+      double charWidth = (_paperSize.width / charsPerLine) * styles.width.value;
+      double fromPos = _colIndToPosition(colInd);
 
-    // Align
-    if (colWidth != 12) {
-      // Update fromPos
-      final double toPos = _colIndToPosition(colInd + colWidth) - 5;
-      final double textLen = textBytes.length * charWidth;
+      // Align
+      if (colWidth != 12) {
+        // Update fromPos
+        final double toPos = _colIndToPosition(colInd + colWidth) - 5;
+        final double textLen = textBytes.length * charWidth;
 
-      if (styles.align == PosAlign.right) {
-        fromPos = toPos - textLen;
-      } else if (styles.align == PosAlign.center) {
-        fromPos = fromPos + (toPos - fromPos) / 2 - textLen / 2;
+        if (styles.align == PosAlign.right) {
+          fromPos = toPos - textLen;
+        } else if (styles.align == PosAlign.center) {
+          fromPos = fromPos + (toPos - fromPos) / 2 - textLen / 2;
+        }
+        if (fromPos < 0) {
+          fromPos = 0;
+        }
       }
-      if (fromPos < 0) {
-        fromPos = 0;
-      }
+
+      final hexStr = fromPos.round().toRadixString(16).padLeft(3, '0');
+      final hexPair = HEX.decode(hexStr);
+
+      // Position
+      bytes += Uint8List.fromList(
+        List.from(cPos.codeUnits)..addAll([hexPair[1], hexPair[0]]),
+      );
     }
-
-    final hexStr = fromPos.round().toRadixString(16).padLeft(3, '0');
-    final hexPair = HEX.decode(hexStr);
-
-    // Position
-    bytes += Uint8List.fromList(
-      List.from(cPos.codeUnits)..addAll([hexPair[1], hexPair[0]]),
-    );
 
     setStyles(styles, isKanji: isKanji);
 
@@ -286,13 +288,17 @@ class Ticket {
     final List<bool> isLexemeChinese = list[1];
 
     // Print each lexeme using codetable OR kanji
+    int colInd = 0;
     for (var i = 0; i < lexemes.length; ++i) {
       _text(
         _encode(lexemes[i], isKanji: isLexemeChinese[i]),
         styles: styles,
+        colInd: colInd,
         isKanji: isLexemeChinese[i],
         maxCharsPerLine: maxCharsPerLine,
       );
+      // Define the absolute position only once (we print one line only)
+      colInd = null;
     }
 
     emptyLines(linesAfter + 1);
@@ -329,7 +335,7 @@ class Ticket {
     }
 
     for (int i = 0; i < cols.length; ++i) {
-      final colInd =
+      int colInd =
           cols.sublist(0, i).fold(0, (int sum, col) => sum + col.width);
       if (!cols[i].containsChinese) {
         _text(
@@ -354,6 +360,8 @@ class Ticket {
             colWidth: cols[i].width,
             isKanji: isLexemeChinese[j],
           );
+          // Define the absolute position only once (we print one line only)
+          colInd = null;
         }
       }
     }
