@@ -1,3 +1,11 @@
+/*
+ * esc_pos_utils
+ * Created by Andrey U.
+ * 
+ * Copyright (c) 2019-2020. All rights reserved.
+ * See LICENSE for distribution and usage details.
+ */
+
 import 'package:esc_pos_utils/src/commands.dart';
 import 'dart:convert';
 
