@@ -7,8 +7,8 @@
  */
 
 import 'dart:convert' show json;
-import 'package:resource/resource.dart' show Resource;
 import 'dart:convert' show utf8;
+import 'package:flutter/services.dart' show rootBundle;
 
 class CodePage {
   CodePage(this.id, this.name);
@@ -21,10 +21,9 @@ class CapabilityProfile {
 
   /// Public factory
   static Future<CapabilityProfile> load({String name = 'default'}) async {
-    var resource =
-        Resource("package:esc_pos_utils/resources/capabilities.json");
-    var string = await resource.readAsString(encoding: utf8);
-    Map capabilities = json.decode(string);
+    final content = await rootBundle
+        .loadString('packages/esc_pos_utils/resources/capabilities.json');
+    Map capabilities = json.decode(content);
 
     var profile = capabilities['profiles'][name];
 
@@ -57,10 +56,9 @@ class CapabilityProfile {
   }
 
   static Future<List<dynamic>> getAvailableProfiles() async {
-    var resource =
-        Resource("package:esc_pos_utils/resources/capabilities.json");
-    var string = await resource.readAsString(encoding: utf8);
-    Map capabilities = json.decode(string);
+    final content = await rootBundle
+        .loadString('packages/esc_pos_utils/resources/capabilities.json');
+    Map capabilities = json.decode(content);
 
     var profiles = capabilities['profiles'];
 
@@ -74,8 +72,6 @@ class CapabilityProfile {
         'description': v['description'] is String ? v['description'] : '',
       });
     });
-
-    print(res);
 
     return res;
   }
