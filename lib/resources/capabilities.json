@@ -1,44 +1,44 @@
 {
-    "profiles": {
-        "default": {
-            "codePages": {
-                "0": "CP437",
-                "1": "CP932",
-                "2": "CP850",
-                "3": "CP860",
-                "4": "CP863",
-                "5": "CP865",
-                "6": "CP1252",
-                "11": "CP851",
-                "12": "CP853",
-                "13": "CP857",
-                "14": "CP737",
-                "15": "ISO_8859-7",
-                "16": "CP1252",
-                "17": "CP866",
-                "18": "CP852",
-                "19": "CP858",
-                "32": "CP720"
-            },
-            "vendor": "Generic",
-            "model": "Default",
-            "description": "Default ESC/POS profile"
-        },
-        "RP80USE": {
-            "codePages": {
-                "0": "CP437",
-                "1": "CP932",
-                "2": "CP850",
-                "3": "CP860",
-                "4": "CP863",
-                "5": "CP865",
-                "6": "CP1251",
-                "7": "CP866",
-                "16": "CP1252"
-            },
-            "vendor": "Rongta",
-            "model": "RP80USE",
-            "description": ""
-        }
+  "profiles": {
+    "default": {
+      "codePages": {
+        "0": "CP437",
+        "1": "CP932",
+        "2": "CP850",
+        "3": "CP860",
+        "4": "CP863",
+        "5": "CP865",
+        "6": "CP1252",
+        "11": "CP851",
+        "12": "CP853",
+        "13": "CP857",
+        "14": "CP737",
+        "15": "ISO_8859-7",
+        "16": "CP1252",
+        "17": "CP866",
+        "18": "CP852",
+        "19": "CP858",
+        "32": "CP720"
+      },
+      "vendor": "Generic",
+      "model": "Default",
+      "description": "Default ESC/POS profile"
+    },
+    "RP80USE": {
+      "codePages": {
+        "0": "CP437",
+        "1": "CP932",
+        "2": "CP850",
+        "3": "CP860",
+        "4": "CP863",
+        "5": "CP865",
+        "6": "CP1251",
+        "7": "CP866",
+        "16": "CP1252"
+      },
+      "vendor": "Rongta",
+      "model": "RP80USE",
+      "description": ""
     }
+  }
 }
