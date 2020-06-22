@@ -1,3 +1,7 @@
+## [0.4.4]
+
+- Setting code page before printing to support some printer models
+
 ## [0.4.3]
 
 - Set Kanji mode 0ff before setting a code page to support some printer models
