@@ -119,6 +119,13 @@ class Ticket {
       _styles = _styles.copyWith(height: styles.height, width: styles.width);
     }
 
+    // Set Kanji mode
+    if (isKanji) {
+      bytes += cKanjiOn.codeUnits;
+    } else {
+      bytes += cKanjiOff.codeUnits;
+    }
+
     // Set local code table
     if (styles.codeTable != null && styles.codeTable != _styles.codeTable) {
       bytes += Uint8List.fromList(
@@ -133,13 +140,6 @@ class Ticket {
           ..add(_profile.getCodePageId(_codeTable)),
       );
       _styles = _styles.copyWith(align: styles.align, codeTable: _codeTable);
-    }
-
-    // Set Kanji mode
-    if (isKanji) {
-      bytes += cKanjiOn.codeUnits;
-    } else {
-      bytes += cKanjiOff.codeUnits;
     }
   }
 
