@@ -1,3 +1,7 @@
+## [0.4.5]
+
+- Updated example and README (using CapabilityProfiles)
+
 ## [0.4.4]
 
 - Setting code page before printing to support some printer models

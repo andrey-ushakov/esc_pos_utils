@@ -5,31 +5,35 @@
 Base Flutter/Dart classes for ESC/POS printing. `Ticket` class generates ESC/POS commands that can be sent to a thermal printer.
 
 This is the "base" library that used for:
-* Flutter WiFi/Ethernet printing: [esc_pos_printer](https://github.com/andrey-ushakov/esc_pos_printer)
-* Flutter Bluetooth printing: [esc_pos_bluetooth](https://github.com/andrey-ushakov/esc_pos_bluetooth)
 
+- Flutter WiFi/Ethernet printing: [esc_pos_printer](https://github.com/andrey-ushakov/esc_pos_printer)
+- Flutter Bluetooth printing: [esc_pos_bluetooth](https://github.com/andrey-ushakov/esc_pos_bluetooth)
 
 ## Main Features
-* Connect to Wi-Fi / Ethernet printers
-* Simple text printing using *text* method
-* Tables printing using *row* method
-* Text styling:
-  * size, align, bold, reverse, underline, different fonts, turn 90°
-* Print images
-* Print barcodes
-  * UPC-A, UPC-E, JAN13 (EAN13), JAN8 (EAN8), CODE39, ITF (Interleaved 2 of 5), CODABAR (NW-7), CODE128
-* Paper cut (partial, full)
-* Beeping (with different duration)
-* Paper feed, reverse feed
+
+- Connect to Wi-Fi / Ethernet printers
+- Simple text printing using _text_ method
+- Tables printing using _row_ method
+- Text styling:
+  - size, align, bold, reverse, underline, different fonts, turn 90°
+- Print images
+- Print barcodes
+  - UPC-A, UPC-E, JAN13 (EAN13), JAN8 (EAN8), CODE39, ITF (Interleaved 2 of 5), CODABAR (NW-7), CODE128
+- Paper cut (partial, full)
+- Beeping (with different duration)
+- Paper feed, reverse feed
 
 **Note**: Your printer may not support some of the presented features (some styles, partial/full paper cutting, reverse feed, barcodes...).
 
 ## Generate a Ticket
 
 ### Simple ticket with styles:
+
 ```dart
 Ticket testTicket() {
-  final Ticket ticket = Ticket(PaperSize.mm80);
+  // Using default profile
+  final profile = await CapabilityProfile.load();
+  final Ticket ticket = Ticket(PaperSize.mm80, profile);
 
   ticket.text(
       'Regular: aA bB cC dD eE fF gG hH iI jJ kK lL mM nN oO pP qQ rR sS tT uU vV wW xX yY zZ');
@@ -84,9 +88,10 @@ ticket.row([
 ### Print an image:
 
 This package implements 3 ESC/POS functions:
-* `ESC *` - print in column format
-* `GS v 0` - print in bit raster format (obsolete)
-* `GS ( L` - print in bit raster format
+
+- `ESC *` - print in column format
+- `GS v 0` - print in bit raster format (obsolete)
+- `GS ( L` - print in bit raster format
 
 Note that your printer may support only some of the above functions.
 
@@ -115,11 +120,13 @@ ticket.barcode(Barcode.upcA(barData));
 ### Print a QR Code:
 
 Using native ESC/POS commands:
+
 ```dart
 ticket.qrcode('example.com');
 ```
 
 To print a QR Code as an image (if your printer doesn't support native commands), add [qr_flutter](https://pub.dev/packages/qr_flutter) and [path_provider](https://pub.dev/packages/path_provider) as a dependency in your `pubspec.yaml` file.
+
 ```dart
 String qrData = "google.com";
 const double qrSize = 200;
@@ -142,54 +149,25 @@ try {
 ```
 
 ## Using Code Tables
-Thanks to the [charset_converter](https://pub.dev/packages/charset_converter) package, it's possible to print in different languages. The source text should be encoded using the corresponding charset and the correct charset should be passed to the `Ticket.textEncoded` method.
 
-Here are some examples:
+Different printers support different sets of code tables. Some printer models are defined in `CapabilityProfile` class. So, if you want to change the default code table, it's important to choose the right profile:
+
 ```dart
-/// Portuguese
-Uint8List encTxt1 = await CharsetConverter.encode(
-    "cp860", "Portuguese: Olá, Não falo português, Cão");
-ticket.textEncoded(encTxt1,
-    styles: PosStyles(codeTable: PosCodeTable.pc860_1));
-
-/// Greek
-Uint8List encTxt2 =
-    await CharsetConverter.encode("windows-1253", "Greek: αβγδώ");
-ticket.textEncoded(encTxt2,
-    styles: PosStyles(codeTable: PosCodeTable.greek));
-
-/// Polish
-Uint8List encTxt3 = await CharsetConverter.encode(
-    "cp852", "Polish: Dzień dobry! Dobry wieczór! Cześć!");
-ticket.textEncoded(encTxt3,
-    styles: PosStyles(codeTable: PosCodeTable.pc852_1));
-
-/// Russian
-Uint8List encTxt4 =
-    await CharsetConverter.encode("cp866", "Russian: Привет мир!");
-ticket.textEncoded(encTxt4,
-    styles: PosStyles(codeTable: PosCodeTable.pc866_2));
-
-/// Thai: x-mac-thai | iso-8859-11 | cp874
-Uint8List encThai =
-    await CharsetConverter.encode("cp874", "Thai: ใบเสร็จ-ใบรับผ้า");
-ticket.textEncoded(encThai,
-    styles: PosStyles(codeTable: PosCodeTable.thai_1));
-
-/// Arabic
-/// Possible charsets for CharsetConverter.encode: cp864, windows-1256
-/// Possible codeTables for PosStyles: arabic, pc864_1, pc864_2, pc1001_1, pc1001_2, wp1256, pc720
-Uint8List encArabic = await CharsetConverter.encode("windows-1256", "اهلا");
-ticket.textEncoded(encArabic,
-    styles: PosStyles(codeTable: PosCodeTable.arabic));
+// Xprinter XP-N160I
+final profile = await CapabilityProfile.load('XP-N160I');
+final Ticket ticket = Ticket(PaperSize.mm80, profile);
+ticket.setGlobalCodeTable('CP1252');
 ```
 
-Note that `CharsetConverter.encode` takes a platform-specific charset (check the [library documentation](https://pub.dev/packages/charset_converter) for more info).
+All available profiles can be retrieved by calling :
 
-Note that different printers may support different sets of codetables and the above examples may not work on some printer models. It's also possible to pass a codetable by its code (according to your printer's documentation): `PosStyles(codeTable: PosCodeTable(7))`.
-
+```dart
+final profiles = await CapabilityProfile.getAvailableProfiles();
+```
 
 ## How to Help
-* Test your printer and add it in the table: [Wifi/Network printer](https://github.com/andrey-ushakov/esc_pos_printer/blob/master/printers.md) or [Bluetooth printer](https://github.com/andrey-ushakov/esc_pos_bluetooth/blob/master/printers.md)
-* Test and report bugs
-* Share your ideas about what could be improved (code optimization, new features...)
+
+- Add a CapabilityProfile to support your printer's model. A new profile should be added to `lib/resources/capabilities.json` file
+- Test your printer and add it in the table: [Wifi/Network printer](https://github.com/andrey-ushakov/esc_pos_printer/blob/master/printers.md) or [Bluetooth printer](https://github.com/andrey-ushakov/esc_pos_bluetooth/blob/master/printers.md)
+- Test and report bugs
+- Share your ideas about what could be improved (code optimization, new features...)
