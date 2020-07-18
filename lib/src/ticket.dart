@@ -20,7 +20,7 @@ import 'pos_styles.dart';
 import 'qrcode.dart';
 
 class Ticket {
-  Ticket(this._paperSize, this._profile) {
+  Ticket(this._paperSize, this._profile, {codec = latin1}) : this._codec = codec {
     reset();
   }
 
@@ -35,6 +35,7 @@ class Ticket {
   PosFontType _font;
   // Current styles
   PosStyles _styles = PosStyles();
+  final Codec _codec;
 
   /// Set global code table which will be used instead of the default printer's code table
   /// (even after resetting)
@@ -66,7 +67,7 @@ class Ticket {
 
   Uint8List _encode(String text, {bool isKanji = false}) {
     if (!isKanji) {
-      return latin1.encode(text);
+      return _codec.encode(text);
     } else {
       return Uint8List.fromList(gbk_bytes.encode(text));
     }
