@@ -20,7 +20,7 @@ import 'pos_styles.dart';
 import 'qrcode.dart';
 
 class Ticket {
-  Ticket(this._paperSize, this._profile) {
+  Ticket(this._paperSize, this._profile, {this.spaceBetweenRows = 5}) {
     reset();
   }
 
@@ -35,6 +35,7 @@ class Ticket {
   PosFontType _font;
   // Current styles
   PosStyles _styles = PosStyles();
+  int spaceBetweenRows;
 
   /// Set global code table which will be used instead of the default printer's code table
   /// (even after resetting)
@@ -170,7 +171,8 @@ class Ticket {
       // Align
       if (colWidth != 12) {
         // Update fromPos
-        final double toPos = _colIndToPosition(colInd + colWidth) - 5;
+        final double toPos =
+            _colIndToPosition(colInd + colWidth) - spaceBetweenRows;
         final double textLen = textBytes.length * charWidth;
 
         if (styles.align == PosAlign.right) {
@@ -360,7 +362,8 @@ class Ticket {
         // If the col's content is too long, split it to the next row
         double charWidth = _getCharWidth(cols[i].styles);
         double fromPos = _colIndToPosition(colInd);
-        final double toPos = _colIndToPosition(colInd + cols[i].width) - 12;
+        final double toPos =
+            _colIndToPosition(colInd + cols[i].width) - spaceBetweenRows;
         int maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
         int realCharactersNb = encodedToPrint.length;
 
