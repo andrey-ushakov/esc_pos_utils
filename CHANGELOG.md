@@ -1,3 +1,8 @@
+## [0.4.6]
+
+- bug fix: printing a long text col splits the data to the next row
+- Ticket class : added named parameter `spaceBetweenRows`
+
 ## [0.4.5]
 
 - Updated example and README (using CapabilityProfiles)
