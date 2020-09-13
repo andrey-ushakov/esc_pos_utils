@@ -162,22 +162,9 @@ class Ticket {
     int colWidth = 12,
     int maxCharsPerLine,
   }) {
-    // Calculate maxCharsPerLine
-    int charsPerLine;
-    if (maxCharsPerLine != null) {
-      charsPerLine = maxCharsPerLine;
-    } else {
-      if (styles.fontType != null) {
-        charsPerLine = _getMaxCharsPerLine(styles.fontType);
-      } else {
-        charsPerLine =
-            _maxCharsPerLine ?? _getMaxCharsPerLine(_styles.fontType);
-      }
-    }
-
     if (colInd != null) {
-      // charWidth = default width * text size multiplier
-      double charWidth = (_paperSize.width / charsPerLine) * styles.width.value;
+      double charWidth =
+          _getCharWidth(styles, maxCharsPerLine: maxCharsPerLine);
       double fromPos = _colIndToPosition(colInd);
 
       // Align
@@ -328,6 +315,28 @@ class Ticket {
     setGlobalCodeTable(_codeTable);
   }
 
+  int _getCharsPerLine(PosStyles styles, int maxCharsPerLine) {
+    int charsPerLine;
+    if (maxCharsPerLine != null) {
+      charsPerLine = maxCharsPerLine;
+    } else {
+      if (styles.fontType != null) {
+        charsPerLine = _getMaxCharsPerLine(styles.fontType);
+      } else {
+        charsPerLine =
+            _maxCharsPerLine ?? _getMaxCharsPerLine(_styles.fontType);
+      }
+    }
+    return charsPerLine;
+  }
+
+  // charWidth = default width * text size multiplier
+  double _getCharWidth(PosStyles styles, {int maxCharsPerLine}) {
+    int charsPerLine = _getCharsPerLine(styles, maxCharsPerLine);
+    double charWidth = (_paperSize.width / charsPerLine) * styles.width.value;
+    return charWidth;
+  }
+
   /// Print a row.
   ///
   /// A row contains up to 12 columns. A column has a width between 1 and 12.
@@ -337,20 +346,49 @@ class Ticket {
     if (!isSumValid) {
       throw Exception('Total columns width must be equal to 12');
     }
+    bool isNextRow = false;
+    List<PosColumn> nextRow = List<PosColumn>();
 
     for (int i = 0; i < cols.length; ++i) {
       int colInd =
           cols.sublist(0, i).fold(0, (int sum, col) => sum + col.width);
       if (!cols[i].containsChinese) {
+        Uint8List encodedToPrint = cols[i].textEncoded != null
+            ? cols[i].textEncoded
+            : _encode(cols[i].text);
+
+        // If the col's content is too long, split it to the next row
+        double charWidth = _getCharWidth(cols[i].styles);
+        double fromPos = _colIndToPosition(colInd);
+        final double toPos = _colIndToPosition(colInd + cols[i].width) - 12;
+        int maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
+        int realCharactersNb = encodedToPrint.length;
+
+        if (realCharactersNb > maxCharactersNb) {
+          // Print max possible and split to the next row
+          Uint8List encodedToPrintNextRow =
+              encodedToPrint.sublist(maxCharactersNb);
+          encodedToPrint = encodedToPrint.sublist(0, maxCharactersNb);
+          isNextRow = true;
+          nextRow.add(PosColumn(
+              textEncoded: encodedToPrintNextRow,
+              containsChinese: cols[i].containsChinese,
+              width: cols[i].width,
+              styles: cols[i].styles));
+        } else {
+          // Insert an empty col
+          nextRow.add(PosColumn(
+              text: '', width: cols[i].width, styles: cols[i].styles));
+        }
+        // end rows splitting
         _text(
-          cols[i].textEncoded != null
-              ? cols[i].textEncoded
-              : _encode(cols[i].text),
+          encodedToPrint,
           styles: cols[i].styles,
           colInd: colInd,
           colWidth: cols[i].width,
         );
       } else {
+        // TODO If the col's content is too long, split it to the next row
         final list = _getLexemes(cols[i].text);
         final List<String> lexemes = list[0];
         final List<bool> isLexemeChinese = list[1];
@@ -371,6 +409,10 @@ class Ticket {
     }
 
     emptyLines(1);
+
+    if (isNextRow) {
+      row(nextRow);
+    }
     // resetStyles();
   }
 
