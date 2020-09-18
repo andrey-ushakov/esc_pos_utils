@@ -242,11 +242,11 @@ class Ticket {
   }
 
   /// Break text into chinese/non-chinese lexemes
-  List _getLexemes(String text) {
-    bool _isChinese(String ch) {
-      return ch.codeUnitAt(0) > 255;
-    }
+  bool _isChinese(String ch) {
+    return ch.codeUnitAt(0) > 255;
+  }
 
+  List _getLexemes(String text) {
     final List<String> lexemes = [];
     final List<bool> isLexemeChinese = [];
     int start = 0;
@@ -354,19 +354,20 @@ class Ticket {
     for (int i = 0; i < cols.length; ++i) {
       int colInd =
           cols.sublist(0, i).fold(0, (int sum, col) => sum + col.width);
+      double charWidth = _getCharWidth(cols[i].styles);
+      double fromPos = _colIndToPosition(colInd);
+      final double toPos =
+          _colIndToPosition(colInd + cols[i].width) - spaceBetweenRows;
+      int maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
+
       if (!cols[i].containsChinese) {
+        // CASE 1: containsChinese = false
         Uint8List encodedToPrint = cols[i].textEncoded != null
             ? cols[i].textEncoded
             : _encode(cols[i].text);
 
         // If the col's content is too long, split it to the next row
-        double charWidth = _getCharWidth(cols[i].styles);
-        double fromPos = _colIndToPosition(colInd);
-        final double toPos =
-            _colIndToPosition(colInd + cols[i].width) - spaceBetweenRows;
-        int maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
         int realCharactersNb = encodedToPrint.length;
-
         if (realCharactersNb > maxCharactersNb) {
           // Print max possible and split to the next row
           Uint8List encodedToPrintNextRow =
@@ -375,7 +376,6 @@ class Ticket {
           isNextRow = true;
           nextRow.add(PosColumn(
               textEncoded: encodedToPrintNextRow,
-              containsChinese: cols[i].containsChinese,
               width: cols[i].width,
               styles: cols[i].styles));
         } else {
@@ -391,8 +391,36 @@ class Ticket {
           colWidth: cols[i].width,
         );
       } else {
-        // TODO If the col's content is too long, split it to the next row
-        final list = _getLexemes(cols[i].text);
+        // CASE 1: containsChinese = true
+        // Split text into multiple lines if it too long
+        int counter = 0;
+        int splitPos = 0;
+        for (int p = 0; p < cols[i].text.length; ++p) {
+          final int w = _isChinese(cols[i].text[p]) ? 2 : 1;
+          if (counter + w >= maxCharactersNb) {
+            break;
+          }
+          counter += w;
+          splitPos += 1;
+        }
+        String toPrintNextRow = cols[i].text.substring(splitPos);
+        String toPrint = cols[i].text.substring(0, splitPos);
+
+        if (toPrintNextRow.isNotEmpty) {
+          isNextRow = true;
+          nextRow.add(PosColumn(
+              text: toPrintNextRow,
+              containsChinese: true,
+              width: cols[i].width,
+              styles: cols[i].styles));
+        } else {
+          // Insert an empty col
+          nextRow.add(PosColumn(
+              text: '', width: cols[i].width, styles: cols[i].styles));
+        }
+
+        // Print current row
+        final list = _getLexemes(toPrint);
         final List<String> lexemes = list[0];
         final List<bool> isLexemeChinese = list[1];
 
