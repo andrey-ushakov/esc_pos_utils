@@ -1,3 +1,7 @@
+## [0.4.8]
+
+- Replace some non-ascii characters
+
 ## [0.4.7]
 
 - Printing a long text col splits the data to the next row (case when col contains chinese characters taking 2 bytes)
