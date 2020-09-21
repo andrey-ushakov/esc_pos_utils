@@ -1,3 +1,7 @@
+## [0.4.9]
+
+- Xprinter profile: added cp1258 (vietnamese)
+
 ## [0.4.8]
 
 - Replace some non-ascii characters
