@@ -1,3 +1,8 @@
+## [1.0.0]
+
+- `Ticket` class replaced by `Generator`.
+- New code generation concept: Unlike `Ticket`, each method returns corresponding command's byte code
+
 ## [0.4.9]
 
 - Xprinter profile: added cp1258 (vietnamese)
