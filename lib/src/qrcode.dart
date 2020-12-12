@@ -62,7 +62,7 @@ class QRCode {
 
     // FN 182. QR Code: Transmit the size information of the symbol data in the symbol storage area
     // pL pH cn fn m
-    bytes += cQrHeader.codeUnits + [0x03, 0x00, 0x31, 0x52, 0x30];
+    //bytes += cQrHeader.codeUnits + [0x03, 0x00, 0x31, 0x52, 0x30];
 
     // FN 181. QR Code: Print the symbol data in the symbol storage area
     // pL pH cn fn m
