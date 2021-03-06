@@ -1,3 +1,7 @@
+## [2.0.0]
+
+- nullable implemented
+
 ## [1.0.0]
 
 - `Ticket` class replaced by `Generator`.
