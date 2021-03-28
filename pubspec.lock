@@ -81,26 +81,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  gbk_codec:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: master
-      resolved-ref: d5cfddf3af6eaad449c6c2c1d67a9dc3f20f127e
-      url: "https://github.com/kechankrisna/gbk_codec.git"
-    source: git
-    version: "1.0.0"
   hex:
     dependency: "direct main"
     description:
-      path: "."
-      ref: nullable
-      resolved-ref: "84b54e68630811fc10ece1697455605327e67f6f"
-      url: "https://github.com/kechankrisna/dart-hex.git"
-    source: git
-    version: "1.0.0"
+      name: hex
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   html:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: html
       url: "https://pub.dartlang.org"
@@ -152,7 +141,7 @@ packages:
       name: source_span
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.0"
+    version: "1.8.1"
   stack_trace:
     dependency: transitive
     description:

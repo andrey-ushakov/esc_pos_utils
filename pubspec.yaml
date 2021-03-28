@@ -9,15 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  hex: 
-    git:
-      url: https://github.com/kechankrisna/dart-hex.git
-      ref: nullable
-  gbk_codec: 
-    git:
-      url: https://github.com/kechankrisna/gbk_codec.git
-      ref: master
+  hex: ^0.2.0
   image: ^3.0.1
+  html: ^0.15.0
 
 dev_dependencies:
   flutter_test:
