@@ -1,3 +1,7 @@
+## [2.0.1]
+
+- included gbk_codec directly
+
 ## [2.0.0]
 
 - nullable implemented
