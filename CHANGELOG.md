@@ -1,3 +1,7 @@
+## [2.0.1+1]
+
+- hotfix resource
+
 ## [2.0.1]
 
 - included gbk_codec directly
