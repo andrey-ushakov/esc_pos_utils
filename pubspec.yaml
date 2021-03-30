@@ -19,4 +19,4 @@ dev_dependencies:
 
 flutter:
   assets:
-    - resources/capabilities.json
+    - packages/esc_pos_utils_plus/resources/capabilities.json
