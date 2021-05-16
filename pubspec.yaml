@@ -9,9 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  hex: ^0.1.2
+  hex: ^0.2.0
   gbk_codec: ^0.3.2
-  image: ^2.1.4
+  image: ^3.0.2
 
 dev_dependencies:
   flutter_test:
