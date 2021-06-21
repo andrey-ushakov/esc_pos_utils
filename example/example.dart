@@ -1,7 +1,7 @@
 import 'package:image/image.dart';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
-import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:esc_pos_utils_plus/esc_pos_utils.dart';
 
 Future<void> main() async {
   final profile = await CapabilityProfile.load();
@@ -53,7 +53,7 @@ Future<void> main() async {
   // Print image:
   final ByteData data = await rootBundle.load('assets/logo.png');
   final Uint8List imgBytes = data.buffer.asUint8List();
-  final Image image = decodeImage(imgBytes);
+  final Image image = decodeImage(imgBytes)!;
   bytes += generator.image(image);
   // Print image using an alternative (obsolette) command
   // bytes += generator.imageRaster(image);

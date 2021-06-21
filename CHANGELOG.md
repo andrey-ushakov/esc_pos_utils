@@ -1,3 +1,23 @@
+## [2.0.1+3]
+
+- change paper size width from 372 to 384 and 558 to 576
+
+## [2.0.1+2]
+
+- hotfix resource
+
+## [2.0.1+1]
+
+- hotfix resource
+
+## [2.0.1]
+
+- included gbk_codec directly
+
+## [2.0.0]
+
+- nullable implemented
+
 ## [1.0.0]
 
 - `Ticket` class replaced by `Generator`.

@@ -42,19 +42,19 @@ class PosStyles {
   final PosAlign align;
   final PosTextSize height;
   final PosTextSize width;
-  final PosFontType fontType;
-  final String codeTable;
+  final PosFontType? fontType;
+  final String? codeTable;
 
   PosStyles copyWith({
-    bool bold,
-    bool reverse,
-    bool underline,
-    bool turn90,
-    PosAlign align,
-    PosTextSize height,
-    PosTextSize width,
-    PosFontType fontType,
-    String codeTable,
+    bool? bold,
+    bool? reverse,
+    bool? underline,
+    bool? turn90,
+    PosAlign? align,
+    PosTextSize? height,
+    PosTextSize? width,
+    PosFontType? fontType,
+    String? codeTable,
   }) {
     return PosStyles(
       bold: bold ?? this.bold,

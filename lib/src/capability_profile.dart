@@ -22,7 +22,7 @@ class CapabilityProfile {
   /// Public factory
   static Future<CapabilityProfile> load({String name = 'default'}) async {
     final content = await rootBundle
-        .loadString('packages/esc_pos_utils/resources/capabilities.json');
+        .loadString('packages/esc_pos_utils_plus/resources/capabilities.json');
     Map capabilities = json.decode(content);
 
     var profile = capabilities['profiles'][name];
@@ -43,21 +43,21 @@ class CapabilityProfile {
   String name;
   List<CodePage> codePages;
 
-  int getCodePageId(String codePage) {
+  int getCodePageId(String? codePage) {
     if (codePages == null) {
       throw Exception("The CapabilityProfile isn't initialized");
     }
 
     return codePages
         .firstWhere((cp) => cp.name == codePage,
-            orElse: () => throw Exception(
-                "Code Page '$codePage' isn't defined for this profile"))
+            orElse: (() => throw Exception(
+                "Code Page '$codePage' isn't defined for this profile")) as CodePage Function()?)
         .id;
   }
 
   static Future<List<dynamic>> getAvailableProfiles() async {
     final content = await rootBundle
-        .loadString('packages/esc_pos_utils/resources/capabilities.json');
+        .loadString('packages/esc_pos_utils_plus/resources/capabilities.json');
     Map capabilities = json.decode(content);
 
     var profiles = capabilities['profiles'];
