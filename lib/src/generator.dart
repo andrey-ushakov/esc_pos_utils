@@ -466,7 +466,7 @@ class Generator {
       throw Exception('Total columns width must be equal to 12');
     }
     bool isNextRow = false;
-    List<PosColumn> nextRow = List<PosColumn>();
+    List<PosColumn> nextRow = [PosColumn()];
 
     for (int i = 0; i < cols.length; ++i) {
       int colInd =

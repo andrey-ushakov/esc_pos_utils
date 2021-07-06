@@ -6,6 +6,7 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 Future<void> main() async {
   final profile = await CapabilityProfile.load();
   final generator = Generator(PaperSize.mm80, profile);
+  // ignore: unused_local_variable
   List<int> bytes = [];
 
   bytes += generator.text(
