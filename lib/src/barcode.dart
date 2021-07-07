@@ -246,12 +246,12 @@ class Barcode {
       throw Exception('Barcode: Wrong data range');
     }
 
-    final regex = RegExp(r'^\{[A-C][\x00-\x7F]+$');
-    final bool isDataValid = regex.hasMatch(barcodeData.join());
+//     final regex = RegExp(r'^\{[A-C][\x00-\x7F]+$');
+//     final bool isDataValid = regex.hasMatch(barcodeData.join());
 
-    if (!isDataValid) {
-      throw Exception('Barcode: Data is not valid');
-    }
+//     if (!isDataValid) {
+//       throw Exception('Barcode: Data is not valid');
+//     }
 
     _type = BarcodeType.code128;
     _data = _convertData(barcodeData);
