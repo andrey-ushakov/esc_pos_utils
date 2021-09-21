@@ -21,16 +21,16 @@ class Generator {
   // Ticket config
   final PaperSize _paperSize;
   CapabilityProfile _profile;
-  int _maxCharsPerLine;
+  int? _maxCharsPerLine;
   // Global styles
-  String _codeTable;
-  PosFontType _font;
+  String? _codeTable;
+  PosFontType? _font;
   // Current styles
   PosStyles _styles = PosStyles();
   int spaceBetweenRows;
 
   // ************************ Internal helpers ************************
-  int _getMaxCharsPerLine(PosFontType font) {
+  int _getMaxCharsPerLine(PosFontType? font) {
     if (_paperSize == PaperSize.mm58) {
       return (font == null || font == PosFontType.fontA) ? 32 : 42;
     } else {
@@ -39,7 +39,7 @@ class Generator {
   }
 
   // charWidth = default width * text size multiplier
-  double _getCharWidth(PosStyles styles, {int maxCharsPerLine}) {
+  double _getCharWidth(PosStyles styles, {int? maxCharsPerLine}) {
     int charsPerLine = _getCharsPerLine(styles, maxCharsPerLine);
     double charWidth = (_paperSize.width / charsPerLine) * styles.width.value;
     return charWidth;
@@ -50,7 +50,7 @@ class Generator {
     return colInd == 0 ? 0 : (width * colInd / 12 - 1);
   }
 
-  int _getCharsPerLine(PosStyles styles, int maxCharsPerLine) {
+  int _getCharsPerLine(PosStyles styles, int? maxCharsPerLine) {
     int charsPerLine;
     if (maxCharsPerLine != null) {
       charsPerLine = maxCharsPerLine;
@@ -232,7 +232,7 @@ class Generator {
 
   /// Set global code table which will be used instead of the default printer's code table
   /// (even after resetting)
-  List<int> setGlobalCodeTable(String codeTable) {
+  List<int> setGlobalCodeTable(String? codeTable) {
     List<int> bytes = [];
     _codeTable = codeTable;
     if (codeTable != null) {
@@ -246,7 +246,7 @@ class Generator {
 
   /// Set global font which will be used instead of the default printer's font
   /// (even after resetting)
-  List<int> setGlobalFont(PosFontType font, {int maxCharsPerLine}) {
+  List<int> setGlobalFont(PosFontType? font, {int? maxCharsPerLine}) {
     List<int> bytes = [];
     _font = font;
     if (font != null) {
@@ -346,7 +346,7 @@ class Generator {
     PosStyles styles = const PosStyles(),
     int linesAfter = 0,
     bool containsChinese = false,
-    int maxCharsPerLine,
+    int? maxCharsPerLine,
   }) {
     List<int> bytes = [];
     if (!containsChinese) {
@@ -406,7 +406,7 @@ class Generator {
   ///
   /// If [codeTable] is null, global code table is used.
   /// If global code table is null, default printer code table is used.
-  List<int> printCodeTable({String codeTable}) {
+  List<int> printCodeTable({String? codeTable}) {
     List<int> bytes = [];
     bytes += cKanjiOff.codeUnits;
 
@@ -466,7 +466,7 @@ class Generator {
       throw Exception('Total columns width must be equal to 12');
     }
     bool isNextRow = false;
-    List<PosColumn> nextRow = List<PosColumn>();
+    List<PosColumn> nextRow = <PosColumn>[];
 
     for (int i = 0; i < cols.length; ++i) {
       int colInd =
@@ -480,7 +480,7 @@ class Generator {
       if (!cols[i].containsChinese) {
         // CASE 1: containsChinese = false
         Uint8List encodedToPrint = cols[i].textEncoded != null
-            ? cols[i].textEncoded
+            ? cols[i].textEncoded!
             : _encode(cols[i].text);
 
         // If the col's content is too long, split it to the next row
@@ -551,7 +551,7 @@ class Generator {
             isKanji: isLexemeChinese[j],
           );
           // Define the absolute position only once (we print one line only)
-          colInd = null;
+          // colInd = null;
         }
       }
     }
@@ -602,7 +602,9 @@ class Generator {
     // Adjust line spacing (for 16-unit line feeds): ESC 3 0x10 (HEX: 0x1b 0x33 0x10)
     bytes += [27, 51, 16];
     for (int i = 0; i < blobs.length; ++i) {
-      bytes += List.from(header)..addAll(blobs[i])..addAll('\n'.codeUnits);
+      bytes += List.from(header)
+        ..addAll(blobs[i])
+        ..addAll('\n'.codeUnits);
     }
     // Reset line spacing: ESC 2 (HEX: 0x1b 0x32)
     bytes += [27, 50];
@@ -665,9 +667,9 @@ class Generator {
   /// Width, height, font, text position settings are effective until performing of ESC @, reset or power-off.
   List<int> barcode(
     Barcode barcode, {
-    int width,
-    int height,
-    BarcodeFont font,
+    int? width,
+    int? height,
+    BarcodeFont? font,
     BarcodeText textPos = BarcodeText.below,
     PosAlign align = PosAlign.center,
   }) {
@@ -693,13 +695,13 @@ class Generator {
     }
 
     // Print barcode
-    final header = cBarcodePrint.codeUnits + [barcode.type.value];
-    if (barcode.type.value <= 6) {
+    final header = cBarcodePrint.codeUnits + [barcode.type!.value];
+    if (barcode.type!.value <= 6) {
       // Function A
-      bytes += header + barcode.data + [0];
+      bytes += header + barcode.data! + [0];
     } else {
       // Function B
-      bytes += header + [barcode.data.length] + barcode.data;
+      bytes += header + [barcode.data!.length] + barcode.data!;
     }
     return bytes;
   }
@@ -732,7 +734,7 @@ class Generator {
 
   /// Print horizontal full width separator
   /// If [len] is null, then it will be defined according to the paper width
-  List<int> hr({String ch = '-', int len, int linesAfter = 0}) {
+  List<int> hr({String ch = '-', int? len, int linesAfter = 0}) {
     List<int> bytes = [];
     int n = len ?? _maxCharsPerLine ?? _getMaxCharsPerLine(_styles.fontType);
     String ch1 = ch.length == 1 ? ch : ch[0];
@@ -744,7 +746,7 @@ class Generator {
     Uint8List textBytes, {
     PosStyles styles = const PosStyles(),
     int linesAfter = 0,
-    int maxCharsPerLine,
+    int? maxCharsPerLine,
   }) {
     List<int> bytes = [];
     bytes += _text(textBytes, styles: styles, maxCharsPerLine: maxCharsPerLine);
@@ -761,10 +763,10 @@ class Generator {
   List<int> _text(
     Uint8List textBytes, {
     PosStyles styles = const PosStyles(),
-    int colInd = 0,
+    int? colInd = 0,
     bool isKanji = false,
     int colWidth = 12,
-    int maxCharsPerLine,
+    int? maxCharsPerLine,
   }) {
     List<int> bytes = [];
     if (colInd != null) {
@@ -809,7 +811,7 @@ class Generator {
     String text, {
     PosStyles styles = const PosStyles(),
     int linesAfter = 0,
-    int maxCharsPerLine,
+    int? maxCharsPerLine,
   }) {
     List<int> bytes = [];
     final list = _getLexemes(text);
@@ -817,7 +819,7 @@ class Generator {
     final List<bool> isLexemeChinese = list[1];
 
     // Print each lexeme using codetable OR kanji
-    int colInd = 0;
+    int? colInd = 0;
     for (var i = 0; i < lexemes.length; ++i) {
       bytes += _text(
         _encode(lexemes[i], isKanji: isLexemeChinese[i]),

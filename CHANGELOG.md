@@ -1,3 +1,9 @@
+## [1.1.0]
+
+- Null-Safety
+- Update libraries
+- Added new printer support: HPRT TP806L
+
 ## [1.0.0]
 
 - `Ticket` class replaced by `Generator`.
