@@ -66,7 +66,7 @@ Future<void> main() async {
   // ticket.text(
   //   'hello ! 中文字 # world @ éphémère &',
   //   styles: PosStyles(codeTable: PosCodeTable.westEur),
-  //   containsChinese: true,
+  //   containsCjk: true,
   // );
 
   bytes += generator.feed(2);

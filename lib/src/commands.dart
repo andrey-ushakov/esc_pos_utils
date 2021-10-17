@@ -33,8 +33,8 @@ const cFontB = '${esc}M\x01'; // Font B
 const cTurn90On = '${esc}V\x01'; // Turn 90° clockwise rotation mode on
 const cTurn90Off = '${esc}V\x00'; // Turn 90° clockwise rotation mode off
 const cCodeTable = '${esc}t'; // Select character code table [N]
-const cKanjiOn = '$fs&'; // Select Kanji character mode
-const cKanjiOff = '$fs.'; // Cancel Kanji character mode
+const cCjkOn = '$fs&'; // Select CJK(Chinese, Japanese, Korean) character mode
+const cCjkOff = '$fs.'; // Cancel CJK(Chinese, Japanese, Korean) character mode
 
 // Print Position
 const cAlignLeft = '${esc}a0'; // Left justification

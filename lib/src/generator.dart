@@ -65,7 +65,7 @@ class Generator {
     return charsPerLine;
   }
 
-  Uint8List _encode(String text, {bool isKanji = false}) {
+  Uint8List _encode(String text, {bool isCjk = false}) {
     // replace some non-ascii characters
     text = text
         .replaceAll("’", "'")
@@ -73,7 +73,7 @@ class Generator {
         .replaceAll("»", '"')
         .replaceAll(" ", ' ')
         .replaceAll("•", '.');
-    if (!isKanji) {
+    if (!isCjk) {
       return latin1.encode(text);
     } else {
       return Uint8List.fromList(gbk_bytes.encode(text));
@@ -82,29 +82,29 @@ class Generator {
 
   List _getLexemes(String text) {
     final List<String> lexemes = [];
-    final List<bool> isLexemeChinese = [];
+    final List<bool> isLexemeCjk = [];
     int start = 0;
     int end = 0;
-    bool curLexemeChinese = _isChinese(text[0]);
+    bool isCharCjk = _isCharCjk(text[0]);
     for (var i = 1; i < text.length; ++i) {
-      if (curLexemeChinese == _isChinese(text[i])) {
+      if (isCharCjk == _isCharCjk(text[i])) {
         end += 1;
       } else {
         lexemes.add(text.substring(start, end + 1));
-        isLexemeChinese.add(curLexemeChinese);
+        isLexemeCjk.add(isCharCjk);
         start = i;
         end = i;
-        curLexemeChinese = !curLexemeChinese;
+        isCharCjk = !isCharCjk;
       }
     }
     lexemes.add(text.substring(start, end + 1));
-    isLexemeChinese.add(curLexemeChinese);
+    isLexemeCjk.add(isCharCjk);
 
-    return <dynamic>[lexemes, isLexemeChinese];
+    return <dynamic>[lexemes, isLexemeCjk];
   }
 
-  /// Break text into chinese/non-chinese lexemes
-  bool _isChinese(String ch) {
+  /// Is the current character CJK(Chinese, Japanese, Korean)?
+  bool _isCharCjk(String ch) {
     return ch.codeUnitAt(0) > 255;
   }
 
@@ -257,7 +257,7 @@ class Generator {
     return bytes;
   }
 
-  List<int> setStyles(PosStyles styles, {bool isKanji = false}) {
+  List<int> setStyles(PosStyles styles, {bool isCjk = false}) {
     List<int> bytes = [];
     if (styles.align != _styles.align) {
       bytes += latin1.encode(styles.align == PosAlign.left
@@ -305,11 +305,11 @@ class Generator {
       _styles = _styles.copyWith(height: styles.height, width: styles.width);
     }
 
-    // Set Kanji mode
-    if (isKanji) {
-      bytes += cKanjiOn.codeUnits;
+    // Set CJK mode
+    if (isCjk) {
+      bytes += cCjkOn.codeUnits;
     } else {
-      bytes += cKanjiOff.codeUnits;
+      bytes += cCjkOff.codeUnits;
     }
 
     // Set local code table
@@ -332,34 +332,37 @@ class Generator {
   }
 
   /// Sens raw command(s)
-  List<int> rawBytes(List<int> cmd, {bool isKanji = false}) {
+  List<int> rawBytes(List<int> cmd, {bool isCjk = false}) {
     List<int> bytes = [];
-    if (!isKanji) {
-      bytes += cKanjiOff.codeUnits;
+    if (!isCjk) {
+      bytes += cCjkOff.codeUnits;
     }
     bytes += Uint8List.fromList(cmd);
     return bytes;
   }
 
+  /// Print [text] with [styles].
+  /// if [text] contains CJK(Chinese, Japanese, Korean) letters, you have to true [containsCjk].
+  /// after [text], skips [n] lines.
   List<int> text(
     String text, {
     PosStyles styles = const PosStyles(),
     int linesAfter = 0,
-    bool containsChinese = false,
+    bool containsCjk = false,
     int? maxCharsPerLine,
   }) {
     List<int> bytes = [];
-    if (!containsChinese) {
+    if (!containsCjk) {
       bytes += _text(
-        _encode(text, isKanji: containsChinese),
+        _encode(text, isCjk: containsCjk),
         styles: styles,
-        isKanji: containsChinese,
+        isCjk: containsCjk,
         maxCharsPerLine: maxCharsPerLine,
       );
       // Ensure at least one line break after the text
       bytes += emptyLines(linesAfter + 1);
     } else {
-      bytes += _mixedKanji(text, styles: styles, linesAfter: linesAfter);
+      bytes += _mixedCjk(text, styles: styles, linesAfter: linesAfter);
     }
     return bytes;
   }
@@ -408,7 +411,7 @@ class Generator {
   /// If global code table is null, default printer code table is used.
   List<int> printCodeTable({String? codeTable}) {
     List<int> bytes = [];
-    bytes += cKanjiOff.codeUnits;
+    bytes += cCjkOff.codeUnits;
 
     if (codeTable != null) {
       bytes += Uint8List.fromList(
@@ -477,8 +480,8 @@ class Generator {
           _colIndToPosition(colInd + cols[i].width) - spaceBetweenRows;
       int maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
 
-      if (!cols[i].containsChinese) {
-        // CASE 1: containsChinese = false
+      if (!cols[i].containsCjk) {
+        // CASE 1: containsCjk = false
         Uint8List encodedToPrint = cols[i].textEncoded != null
             ? cols[i].textEncoded!
             : _encode(cols[i].text);
@@ -508,12 +511,12 @@ class Generator {
           colWidth: cols[i].width,
         );
       } else {
-        // CASE 1: containsChinese = true
+        // CASE 1: containsCjk = true
         // Split text into multiple lines if it too long
         int counter = 0;
         int splitPos = 0;
         for (int p = 0; p < cols[i].text.length; ++p) {
-          final int w = _isChinese(cols[i].text[p]) ? 2 : 1;
+          final int w = _isCharCjk(cols[i].text[p]) ? 2 : 1;
           if (counter + w >= maxCharactersNb) {
             break;
           }
@@ -527,7 +530,7 @@ class Generator {
           isNextRow = true;
           nextRow.add(PosColumn(
               text: toPrintNextRow,
-              containsChinese: true,
+              containsCjk: true,
               width: cols[i].width,
               styles: cols[i].styles));
         } else {
@@ -539,17 +542,17 @@ class Generator {
         // Print current row
         final list = _getLexemes(toPrint);
         final List<String> lexemes = list[0];
-        final List<bool> isLexemeChinese = list[1];
+        final List<bool> isLexemeCjk = list[1];
 
         // Print each lexeme using codetable OR kanji
         int? colIndex = colInd;
         for (var j = 0; j < lexemes.length; ++j) {
           bytes += _text(
-            _encode(lexemes[j], isKanji: isLexemeChinese[j]),
+            _encode(lexemes[j], isCjk: isLexemeCjk[j]),
             styles: cols[i].styles,
             colInd: colIndex,
             colWidth: cols[i].width,
-            isKanji: isLexemeChinese[j],
+            isCjk: isLexemeCjk[j],
           );
           // Define the absolute position only once (we print one line only)
           colIndex = null;
@@ -765,7 +768,7 @@ class Generator {
     Uint8List textBytes, {
     PosStyles styles = const PosStyles(),
     int? colInd = 0,
-    bool isKanji = false,
+    bool isCjk = false,
     int colWidth = 12,
     int? maxCharsPerLine,
   }) {
@@ -801,14 +804,14 @@ class Generator {
       );
     }
 
-    bytes += setStyles(styles, isKanji: isKanji);
+    bytes += setStyles(styles, isCjk: isCjk);
 
     bytes += textBytes;
     return bytes;
   }
 
   /// Prints one line of styled mixed (chinese and latin symbols) text
-  List<int> _mixedKanji(
+  List<int> _mixedCjk(
     String text, {
     PosStyles styles = const PosStyles(),
     int linesAfter = 0,
@@ -817,16 +820,16 @@ class Generator {
     List<int> bytes = [];
     final list = _getLexemes(text);
     final List<String> lexemes = list[0];
-    final List<bool> isLexemeChinese = list[1];
+    final List<bool> isLexemeCjk = list[1];
 
     // Print each lexeme using codetable OR kanji
     int? colInd = 0;
     for (var i = 0; i < lexemes.length; ++i) {
       bytes += _text(
-        _encode(lexemes[i], isKanji: isLexemeChinese[i]),
+        _encode(lexemes[i], isCjk: isLexemeCjk[i]),
         styles: styles,
         colInd: colInd,
-        isKanji: isLexemeChinese[i],
+        isCjk: isLexemeCjk[i],
         maxCharsPerLine: maxCharsPerLine,
       );
       // Define the absolute position only once (we print one line only)
