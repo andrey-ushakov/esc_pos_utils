@@ -8,9 +8,9 @@
 
 import 'dart:convert';
 import 'dart:typed_data' show Uint8List;
+import 'package:esc_pos_utils/src/text_with_type.dart';
 import 'package:hex/hex.dart';
 import 'package:image/image.dart';
-import 'package:gbk_codec/gbk_codec.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'enums.dart';
 import 'commands.dart';
@@ -65,46 +65,34 @@ class Generator {
     return charsPerLine;
   }
 
-  Uint8List _encode(String text, {bool isCjk = false}) {
-    // replace some non-ascii characters
-    text = text
-        .replaceAll("’", "'")
-        .replaceAll("´", "'")
-        .replaceAll("»", '"')
-        .replaceAll(" ", ' ')
-        .replaceAll("•", '.');
-    if (!isCjk) {
-      return latin1.encode(text);
-    } else {
-      return Uint8List.fromList(gbk_bytes.encode(text));
-    }
-  }
-
-  List _getLexemes(String text) {
-    final List<String> lexemes = [];
-    final List<bool> isLexemeCjk = [];
+  List<TextWithType> _splitByTextType(String text) {
+    final List<TextWithType> textWithType = [];
     int start = 0;
     int end = 0;
-    bool isCharCjk = _isCharCjk(text[0]);
+    bool isCharCjk = _isCjkChar(text[0]);
     for (var i = 1; i < text.length; ++i) {
-      if (isCharCjk == _isCharCjk(text[i])) {
+      if (isCharCjk == _isCjkChar(text[i])) {
         end += 1;
       } else {
-        lexemes.add(text.substring(start, end + 1));
-        isLexemeCjk.add(isCharCjk);
+        textWithType.add(TextWithType.fromText(
+          text: text.substring(start, end + 1),
+          isCjk: isCharCjk,
+        ));
         start = i;
         end = i;
         isCharCjk = !isCharCjk;
       }
     }
-    lexemes.add(text.substring(start, end + 1));
-    isLexemeCjk.add(isCharCjk);
+    textWithType.add(TextWithType.fromText(
+      text: text.substring(start, end + 1),
+      isCjk: isCharCjk,
+    ));
 
-    return <dynamic>[lexemes, isLexemeCjk];
+    return textWithType;
   }
 
   /// Is the current character CJK(Chinese, Japanese, Korean)?
-  bool _isCharCjk(String ch) {
+  bool _isCjkChar(String ch) {
     return ch.codeUnitAt(0) > 255;
   }
 
@@ -354,15 +342,20 @@ class Generator {
     List<int> bytes = [];
     if (!containsCjk) {
       bytes += _text(
-        _encode(text, isCjk: containsCjk),
+        [TextWithType.fromText(text: text, isCjk: containsCjk)],
         styles: styles,
-        isCjk: containsCjk,
         maxCharsPerLine: maxCharsPerLine,
       );
       // Ensure at least one line break after the text
       bytes += emptyLines(linesAfter + 1);
     } else {
-      bytes += _mixedCjk(text, styles: styles, linesAfter: linesAfter);
+      bytes += _text(
+        _splitByTextType(text),
+        styles: styles,
+        maxCharsPerLine: maxCharsPerLine,
+      );
+      // Ensure at least one line break after the text
+      bytes += emptyLines(linesAfter + 1);
     }
     return bytes;
   }
@@ -482,17 +475,19 @@ class Generator {
 
       if (!cols[i].containsCjk) {
         // CASE 1: containsCjk = false
-        Uint8List encodedToPrint = cols[i].textEncoded != null
-            ? cols[i].textEncoded!
-            : _encode(cols[i].text);
+        var textWithType = cols[i].textEncoded != null
+            ? TextWithType.fromEncoded(encodedBytes: cols[i].textEncoded!)
+            : TextWithType.fromText(text: cols[i].text);
 
         // If the col's content is too long, split it to the next row
-        int realCharactersNb = encodedToPrint.length;
+        int realCharactersNb = textWithType.encodedBytes.length;
         if (realCharactersNb > maxCharactersNb) {
           // Print max possible and split to the next row
           Uint8List encodedToPrintNextRow =
-              encodedToPrint.sublist(maxCharactersNb);
-          encodedToPrint = encodedToPrint.sublist(0, maxCharactersNb);
+              textWithType.encodedBytes.sublist(maxCharactersNb);
+          textWithType = TextWithType.fromEncoded(
+              encodedBytes:
+                  textWithType.encodedBytes.sublist(0, maxCharactersNb));
           isNextRow = true;
           nextRow.add(PosColumn(
               textEncoded: encodedToPrintNextRow,
@@ -505,7 +500,7 @@ class Generator {
         }
         // end rows splitting
         bytes += _text(
-          encodedToPrint,
+          [textWithType],
           styles: cols[i].styles,
           colInd: colInd,
           colWidth: cols[i].width,
@@ -516,7 +511,7 @@ class Generator {
         int counter = 0;
         int splitPos = 0;
         for (int p = 0; p < cols[i].text.length; ++p) {
-          final int w = _isCharCjk(cols[i].text[p]) ? 2 : 1;
+          final int w = _isCjkChar(cols[i].text[p]) ? 2 : 1;
           if (counter + w >= maxCharactersNb) {
             break;
           }
@@ -540,23 +535,12 @@ class Generator {
         }
 
         // Print current row
-        final list = _getLexemes(toPrint);
-        final List<String> lexemes = list[0];
-        final List<bool> isLexemeCjk = list[1];
-
-        // Print each lexeme using codetable OR kanji
-        int? colIndex = colInd;
-        for (var j = 0; j < lexemes.length; ++j) {
-          bytes += _text(
-            _encode(lexemes[j], isCjk: isLexemeCjk[j]),
-            styles: cols[i].styles,
-            colInd: colIndex,
-            colWidth: cols[i].width,
-            isCjk: isLexemeCjk[j],
-          );
-          // Define the absolute position only once (we print one line only)
-          colIndex = null;
-        }
+        bytes += _text(
+          _splitByTextType(toPrint),
+          styles: cols[i].styles,
+          colInd: colInd,
+          colWidth: cols[i].width,
+        );
       }
     }
 
@@ -753,7 +737,8 @@ class Generator {
     int? maxCharsPerLine,
   }) {
     List<int> bytes = [];
-    bytes += _text(textBytes, styles: styles, maxCharsPerLine: maxCharsPerLine);
+    bytes += _text([TextWithType.fromEncoded(encodedBytes: textBytes)],
+        styles: styles, maxCharsPerLine: maxCharsPerLine);
     // Ensure at least one line break after the text
     bytes += emptyLines(linesAfter + 1);
     return bytes;
@@ -765,10 +750,9 @@ class Generator {
   ///
   /// [colInd] range: 0..11. If null: do not define the position
   List<int> _text(
-    Uint8List textBytes, {
+    List<TextWithType> textWithTypes, {
     PosStyles styles = const PosStyles(),
     int? colInd = 0,
-    bool isCjk = false,
     int colWidth = 12,
     int? maxCharsPerLine,
   }) {
@@ -783,7 +767,11 @@ class Generator {
         // Update fromPos
         final double toPos =
             _colIndToPosition(colInd + colWidth) - spaceBetweenRows;
-        final double textLen = textBytes.length * charWidth;
+        final int textByteLength = textWithTypes.fold(
+            0,
+            (int previousValue, textWithType) =>
+                previousValue + textWithType.encodedBytes.length);
+        final double textLen = textByteLength * charWidth;
 
         if (styles.align == PosAlign.right) {
           fromPos = toPos - textLen;
@@ -804,40 +792,13 @@ class Generator {
       );
     }
 
-    bytes += setStyles(styles, isCjk: isCjk);
+    textWithTypes.forEach((textWithType) {
+      bytes += setStyles(styles, isCjk: textWithType.isCjk);
 
-    bytes += textBytes;
+      bytes += textWithType.encodedBytes;
+    });
     return bytes;
   }
 
-  /// Prints one line of styled mixed (chinese and latin symbols) text
-  List<int> _mixedCjk(
-    String text, {
-    PosStyles styles = const PosStyles(),
-    int linesAfter = 0,
-    int? maxCharsPerLine,
-  }) {
-    List<int> bytes = [];
-    final list = _getLexemes(text);
-    final List<String> lexemes = list[0];
-    final List<bool> isLexemeCjk = list[1];
-
-    // Print each lexeme using codetable OR kanji
-    int? colInd = 0;
-    for (var i = 0; i < lexemes.length; ++i) {
-      bytes += _text(
-        _encode(lexemes[i], isCjk: isLexemeCjk[i]),
-        styles: styles,
-        colInd: colInd,
-        isCjk: isLexemeCjk[i],
-        maxCharsPerLine: maxCharsPerLine,
-      );
-      // Define the absolute position only once (we print one line only)
-      colInd = null;
-    }
-
-    bytes += emptyLines(linesAfter + 1);
-    return bytes;
-  }
-  // ************************ (end) Internal command generators ************************
+// ************************ (end) Internal command generators ************************
 }
