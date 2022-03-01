@@ -146,7 +146,8 @@ class Generator {
     final int heightPx = image.height;
 
     // Create a black bottom layer
-    final biggerImage = copyResize(image, width: widthPx, height: heightPx);
+    final biggerImage = copyResize(image,
+        width: widthPx, height: heightPx, interpolation: Interpolation.linear);
     fill(biggerImage, 0);
     // Insert source image into bigger one
     drawImage(biggerImage, image, dstX: 0, dstY: 0);
@@ -578,7 +579,12 @@ class Generator {
 
     Image image;
     if (!isDoubleDensity) {
-      image = copyResize(imgSrc,width: imgSrc.width~/2);
+      int size = 558 ~/ 2;
+      if (_paperSize == PaperSize.mm58) {
+        size = 375 ~/ 2;
+      }
+      image =
+          copyResize(imgSrc, width: size, interpolation: Interpolation.linear);
     } else {
       image = Image.from(imgSrc); // make a copy
     }
@@ -590,6 +596,7 @@ class Generator {
     final Image imageRotated = copyRotate(image, 270);
 
     int lineHeight = highDensityVertical ? 3 : 1;
+
     final List<List<int>> blobs = _toColumnFormat(imageRotated, lineHeight * 8);
 
     // Compress according to line density
