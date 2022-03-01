@@ -576,7 +576,12 @@ class Generator {
     // Image alignment
     bytes += setStyles(PosStyles().copyWith(align: align));
 
-    final Image image = Image.from(imgSrc); // make a copy
+    Image image;
+    if (!isDoubleDensity) {
+      image = copyResize(imgSrc,width: imgSrc.width~/2);
+    } else {
+      image = Image.from(imgSrc); // make a copy
+    }
     bool highDensityHorizontal = isDoubleDensity;
     bool highDensityVertical = isDoubleDensity;
 
