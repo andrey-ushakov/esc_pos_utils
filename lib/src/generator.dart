@@ -556,7 +556,7 @@ class Generator {
       }
     }
 
-    bytes += emptyLines(1);
+    //bytes += emptyLines(1);
 
     if (isNextRow) {
       bytes += row(nextRow);
