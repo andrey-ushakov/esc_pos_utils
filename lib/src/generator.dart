@@ -349,6 +349,7 @@ class Generator {
     int? maxCharsPerLine,
   }) {
     List<int> bytes = [];
+    text=text.replaceAll(RegExp('[^A-Za-z0-9!"#\$%&\'\n()*+,./:;<=>?@\^_`{|}~-]'), ' ');
     if (!containsChinese) {
       bytes += _text(
         _encode(text, isKanji: containsChinese),
