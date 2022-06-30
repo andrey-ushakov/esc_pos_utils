@@ -737,6 +737,17 @@ class Generator {
     return bytes;
   }
 
+  //0 - 17
+  //or 48 - 59
+  //TM-T82II  m = 0 – 11, 48 – 59
+  List<int> printSpeech(int level) {
+    List<int> bytes = [];
+    // FN 167. QR Code: Set the size of module
+    // pL pH fn m
+    bytes += cControlHeader.codeUnits + [0x02, 0x00, 0x32, level];
+    return bytes;
+  }
+
   /// Open cash drawer
   List<int> drawer({PosDrawer pin = PosDrawer.pin2}) {
     List<int> bytes = [];
