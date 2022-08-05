@@ -73,6 +73,7 @@ class Generator {
         .replaceAll("»", '"')
         .replaceAll(" ", ' ')
         .replaceAll("•", '.');
+    text=text.replaceAll(RegExp('[^A-Za-z0-9!"#\$%&\'\n()*+,./:;<=>?@\^_`{|}~-]'), ' ');
     if (!isKanji) {
       return latin1.encode(text);
     } else {
