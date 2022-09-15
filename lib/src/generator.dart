@@ -7,10 +7,12 @@
  */
 
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:typed_data' show Uint8List;
 import 'package:hex/hex.dart';
 import 'package:image/image.dart';
-import 'package:gbk_codec/gbk_codec.dart';
+// import 'package:gbk_codec/gbk_codec.dart';
+import 'package:esc_pos_utils/src/text_with_type.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'enums.dart';
 import 'commands.dart';
@@ -65,24 +67,29 @@ class Generator {
     return charsPerLine;
   }
 
-  Uint8List _encode(String text, {bool isKanji = false}) {
-    // replace some non-ascii characters
-    text = text
-        .replaceAll("’", "'")
-        .replaceAll("´", "'")
-        .replaceAll("»", '"')
-        .replaceAll(" ", ' ')
-        .replaceAll("•", '.');
-    if (!isKanji) {
-      return latin1.encode(text);
-    } else {
-      return Uint8List.fromList(gbk_bytes.encode(text));
-    }
-  }
+  // Uint8List _encode(String text, {bool isKanji = false}) {
+  //   // replace some non-ascii characters
+  //   text = text
+  //       .replaceAll("’", "'")
+  //       .replaceAll("´", "'")
+  //       .replaceAll("»", '"')
+  //       .replaceAll(" ", ' ')
+  //       .replaceAll("•", '.');
+  //   if (!isKanji) {
+  //     return latin1.encode(text);
+  //   } else {
+  //     return Uint8List.fromList(gbk_bytes.encode(text));
+  //   }
+  // }
 
-  List _getLexemes(String text) {
-    final List<String> lexemes = [];
-    final List<bool> isLexemeChinese = [];
+  // List _getLexemes(String text) {
+  //   final List<String> lexemes = [];
+  //   final List<bool> isLexemeChinese = [];
+  List<TextWithType> _splitByTextType(String text) {
+    if (text.isEmpty) {
+      return [];
+    }
+    final List<TextWithType> textWithType = [];
     int start = 0;
     int end = 0;
     bool curLexemeChinese = _isChinese(text[0]);
@@ -90,17 +97,26 @@ class Generator {
       if (curLexemeChinese == _isChinese(text[i])) {
         end += 1;
       } else {
-        lexemes.add(text.substring(start, end + 1));
-        isLexemeChinese.add(curLexemeChinese);
+        // lexemes.add(text.substring(start, end + 1));
+        // isLexemeChinese.add(curLexemeChinese);
+        textWithType.add(TextWithType.fromText(
+          text: text.substring(start, end + 1),
+          isCjk: curLexemeChinese,
+        ));
         start = i;
         end = i;
         curLexemeChinese = !curLexemeChinese;
       }
     }
-    lexemes.add(text.substring(start, end + 1));
-    isLexemeChinese.add(curLexemeChinese);
+    // lexemes.add(text.substring(start, end + 1));
+    // isLexemeChinese.add(curLexemeChinese);
+    textWithType.add(TextWithType.fromText(
+      text: text.substring(start, end + 1),
+      isCjk: curLexemeChinese,
+    ));
+    return textWithType;
 
-    return <dynamic>[lexemes, isLexemeChinese];
+    // return <dynamic>[lexemes, isLexemeChinese];
   }
 
   /// Break text into chinese/non-chinese lexemes
@@ -351,15 +367,23 @@ class Generator {
     List<int> bytes = [];
     if (!containsChinese) {
       bytes += _text(
-        _encode(text, isKanji: containsChinese),
+        // _encode(text, isKanji: containsChinese),
+        [TextWithType.fromText(text: text, isCjk: containsChinese)],
         styles: styles,
-        isKanji: containsChinese,
+        // isKanji: containsChinese,
         maxCharsPerLine: maxCharsPerLine,
       );
       // Ensure at least one line break after the text
       bytes += emptyLines(linesAfter + 1);
     } else {
-      bytes += _mixedKanji(text, styles: styles, linesAfter: linesAfter);
+      // bytes += _mixedKanji(text, styles: styles, linesAfter: linesAfter);
+      bytes += _text(
+        _splitByTextType(text),
+        styles: styles,
+        maxCharsPerLine: maxCharsPerLine,
+      );
+      // Ensure at least one line break after the text
+      bytes += emptyLines(linesAfter + 1);
     }
     return bytes;
   }
@@ -479,17 +503,25 @@ class Generator {
 
       if (!cols[i].containsChinese) {
         // CASE 1: containsChinese = false
-        Uint8List encodedToPrint = cols[i].textEncoded != null
-            ? cols[i].textEncoded!
-            : _encode(cols[i].text);
+        // Uint8List encodedToPrint = cols[i].textEncoded != null
+        //     ? cols[i].textEncoded!
+        //     : _encode(cols[i].text);
+        var textWithType = cols[i].textEncoded != null
+            ? TextWithType.fromEncoded(encodedBytes: cols[i].textEncoded!)
+            : TextWithType.fromText(text: cols[i].text);
 
         // If the col's content is too long, split it to the next row
-        int realCharactersNb = encodedToPrint.length;
+        // int realCharactersNb = encodedToPrint.length;
+        int realCharactersNb = textWithType.encodedBytes.length;
         if (realCharactersNb > maxCharactersNb) {
           // Print max possible and split to the next row
           Uint8List encodedToPrintNextRow =
-              encodedToPrint.sublist(maxCharactersNb);
-          encodedToPrint = encodedToPrint.sublist(0, maxCharactersNb);
+              //     encodedToPrint.sublist(maxCharactersNb);
+              // encodedToPrint = encodedToPrint.sublist(0, maxCharactersNb);
+              textWithType.encodedBytes.sublist(maxCharactersNb);
+          textWithType = TextWithType.fromEncoded(
+              encodedBytes:
+                  textWithType.encodedBytes.sublist(0, maxCharactersNb));
           isNextRow = true;
           nextRow.add(PosColumn(
               textEncoded: encodedToPrintNextRow,
@@ -498,11 +530,12 @@ class Generator {
         } else {
           // Insert an empty col
           nextRow.add(PosColumn(
-              text: '', width: cols[i].width, styles: cols[i].styles));
+              text: ' ', width: cols[i].width, styles: cols[i].styles));
         }
         // end rows splitting
         bytes += _text(
-          encodedToPrint,
+          // encodedToPrint,
+          [textWithType],
           styles: cols[i].styles,
           colInd: colInd,
           colWidth: cols[i].width,
@@ -533,33 +566,41 @@ class Generator {
         } else {
           // Insert an empty col
           nextRow.add(PosColumn(
-              text: '', width: cols[i].width, styles: cols[i].styles));
+              text: ' ', width: cols[i].width, styles: cols[i].styles));
         }
 
         // Print current row
-        final list = _getLexemes(toPrint);
-        final List<String> lexemes = list[0];
-        final List<bool> isLexemeChinese = list[1];
+        // final list = _getLexemes(toPrint);
+        // final List<String> lexemes = list[0];
+        // final List<bool> isLexemeChinese = list[1];
 
-        // Print each lexeme using codetable OR kanji
-        for (var j = 0; j < lexemes.length; ++j) {
-          bytes += _text(
-            _encode(lexemes[j], isKanji: isLexemeChinese[j]),
-            styles: cols[i].styles,
-            colInd: colInd,
-            colWidth: cols[i].width,
-            isKanji: isLexemeChinese[j],
-          );
-          // Define the absolute position only once (we print one line only)
-          // colInd = null;
-        }
+        // // Print each lexeme using codetable OR kanji
+        // int? colIndex = colInd;
+        // for (var j = 0; j < lexemes.length; ++j) {
+        //   bytes += _text(
+        //     _encode(lexemes[j], isKanji: isLexemeChinese[j]),
+        //     styles: cols[i].styles,
+        //     colInd: colIndex,
+        //     colWidth: cols[i].width,
+        //     isKanji: isLexemeChinese[j],
+        //   );
+        //   // Define the absolute position only once (we print one line only)
+        //   // colInd = null;
+        //   colIndex = null;
+        // }
+        bytes += _text(
+          _splitByTextType(toPrint),
+          styles: cols[i].styles,
+          colInd: colInd,
+          colWidth: cols[i].width,
+        );
       }
     }
 
     bytes += emptyLines(1);
 
     if (isNextRow) {
-      row(nextRow);
+      bytes += row(nextRow);
     }
     return bytes;
   }
@@ -749,7 +790,8 @@ class Generator {
     int? maxCharsPerLine,
   }) {
     List<int> bytes = [];
-    bytes += _text(textBytes, styles: styles, maxCharsPerLine: maxCharsPerLine);
+    bytes += _text([TextWithType.fromEncoded(encodedBytes: textBytes)],
+        styles: styles, maxCharsPerLine: maxCharsPerLine);
     // Ensure at least one line break after the text
     bytes += emptyLines(linesAfter + 1);
     return bytes;
@@ -761,10 +803,11 @@ class Generator {
   ///
   /// [colInd] range: 0..11. If null: do not define the position
   List<int> _text(
-    Uint8List textBytes, {
+    // Uint8List textBytes, {
+    List<TextWithType> textWithTypes, {
     PosStyles styles = const PosStyles(),
     int? colInd = 0,
-    bool isKanji = false,
+    // bool isKanji = false,
     int colWidth = 12,
     int? maxCharsPerLine,
   }) {
@@ -779,7 +822,12 @@ class Generator {
         // Update fromPos
         final double toPos =
             _colIndToPosition(colInd + colWidth) - spaceBetweenRows;
-        final double textLen = textBytes.length * charWidth;
+        // final double textLen = textBytes.length * charWidth;
+        final int textByteLength = textWithTypes.fold(
+            0,
+            (int previousValue, textWithType) =>
+                previousValue + textWithType.encodedBytes.length);
+        final double textLen = textByteLength * charWidth;
 
         if (styles.align == PosAlign.right) {
           fromPos = toPos - textLen;
@@ -800,39 +848,12 @@ class Generator {
       );
     }
 
-    bytes += setStyles(styles, isKanji: isKanji);
+    // bytes += setStyles(styles, isKanji: isKanji);
+    textWithTypes.forEach((textWithType) {
+      bytes += setStyles(styles, isKanji: textWithType.isCjk);
 
-    bytes += textBytes;
-    return bytes;
-  }
-
-  /// Prints one line of styled mixed (chinese and latin symbols) text
-  List<int> _mixedKanji(
-    String text, {
-    PosStyles styles = const PosStyles(),
-    int linesAfter = 0,
-    int? maxCharsPerLine,
-  }) {
-    List<int> bytes = [];
-    final list = _getLexemes(text);
-    final List<String> lexemes = list[0];
-    final List<bool> isLexemeChinese = list[1];
-
-    // Print each lexeme using codetable OR kanji
-    int? colInd = 0;
-    for (var i = 0; i < lexemes.length; ++i) {
-      bytes += _text(
-        _encode(lexemes[i], isKanji: isLexemeChinese[i]),
-        styles: styles,
-        colInd: colInd,
-        isKanji: isLexemeChinese[i],
-        maxCharsPerLine: maxCharsPerLine,
-      );
-      // Define the absolute position only once (we print one line only)
-      colInd = null;
-    }
-
-    bytes += emptyLines(linesAfter + 1);
+      bytes += textWithType.encodedBytes;
+    });
     return bytes;
   }
   // ************************ (end) Internal command generators ************************
