@@ -86,6 +86,9 @@ class Generator {
   //   final List<String> lexemes = [];
   //   final List<bool> isLexemeChinese = [];
   List<TextWithType> _splitByTextType(String text) {
+    if (text.isEmpty) {
+      return [];
+    }
     final List<TextWithType> textWithType = [];
     int start = 0;
     int end = 0;
