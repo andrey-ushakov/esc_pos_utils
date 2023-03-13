@@ -647,7 +647,7 @@ class Generator {
       header1.addAll([48, 112, 48]); // m=48, fn=112, a=48
       header1.addAll([1, 1]); // bx=1, by=1
       header1.addAll([49]); // c=49
-      header1.addAll(_intLowHigh(widthBytes, 2)); // xL xH
+      header1.addAll(_intLowHigh(widthPx, 2)); // xL xH
       header1.addAll(_intLowHigh(heightPx, 2)); // yL yH
       bytes += List.from(header1)..addAll(resterizedData);
 
