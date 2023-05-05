@@ -493,6 +493,11 @@ class Generator {
             while(String.fromCharCodes(encodedToPrint.sublist(0,maxCharactersNb))[String.fromCharCodes(encodedToPrint.sublist(0,maxCharactersNb)).length-1]!=" ")
             {
                maxCharactersNb--;
+               if(maxCharactersNb==0)
+               {
+                maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
+                break;
+               }
             }
           } catch (e) {}
           Uint8List encodedToPrintNextRow =
