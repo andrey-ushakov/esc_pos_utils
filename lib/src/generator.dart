@@ -147,7 +147,7 @@ class Generator {
     final biggerImage = copyResize(image, width: widthPx, height: heightPx);
     fill(biggerImage, color: ColorUint4(0));
     // Insert source image into bigger one
-    drawPixel(biggerImage, 0, 0, ColorUint4(0), mask: image);
+    compositeImage(biggerImage, image, dstX: 0, dstY: 0);
 
     int left = 0;
     final List<List<int>> blobs = [];
