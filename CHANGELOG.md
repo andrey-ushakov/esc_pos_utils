@@ -1,3 +1,8 @@
+## [1.1.1]
+
+- Supports latest Image library (4.0.17) 22/05/2023
+- Supports Flutter 3.10
+
 ## [1.1.0]
 
 - Null-Safety
