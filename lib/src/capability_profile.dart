@@ -7,8 +7,9 @@
  */
 
 import 'dart:convert' show json;
-import 'dart:convert' show utf8;
-import 'package:flutter/services.dart' show rootBundle;
+
+import 'package:esc_pos_utils/src/capabilities_json.dart';
+// import 'package:flutter/services.dart' show rootBundle;
 
 class CodePage {
   CodePage(this.id, this.name);
@@ -21,8 +22,7 @@ class CapabilityProfile {
 
   /// Public factory
   static Future<CapabilityProfile> load({String name = 'default'}) async {
-    final content = await rootBundle
-        .loadString('packages/esc_pos_utils/resources/capabilities.json');
+    final content = capabilitiesJson;
     Map capabilities = json.decode(content);
 
     var profile = capabilities['profiles'][name];
@@ -48,16 +48,11 @@ class CapabilityProfile {
       throw Exception("The CapabilityProfile isn't initialized");
     }
 
-    return codePages
-        .firstWhere((cp) => cp.name == codePage,
-            orElse: () => throw Exception(
-                "Code Page '$codePage' isn't defined for this profile"))
-        .id;
+    return codePages.firstWhere((cp) => cp.name == codePage, orElse: () => throw Exception("Code Page '$codePage' isn't defined for this profile")).id;
   }
 
   static Future<List<dynamic>> getAvailableProfiles() async {
-    final content = await rootBundle
-        .loadString('packages/esc_pos_utils/resources/capabilities.json');
+    final content = capabilitiesJson;
     Map capabilities = json.decode(content);
 
     var profiles = capabilities['profiles'];
