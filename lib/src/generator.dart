@@ -73,10 +73,11 @@ class Generator {
         .replaceAll("»", '"')
         .replaceAll(" ", ' ')
         .replaceAll("•", '.');
-    text=text.replaceAll(RegExp('[^A-Za-z0-9!"#\$%&\'\n()*+,./:;<=>?@\^_`{|}~-]'), ' ');
+    
     if (!isKanji) {
       return latin1.encode(text);
     } else {
+      text=text.replaceAll(RegExp('[^A-Za-z0-9!"#\$%&\'\n()*+,./:;<=>?@\^_`{|}~-]'), ' ');
       return Uint8List.fromList(gbk_bytes.encode(text));
     }
   }
@@ -350,8 +351,8 @@ class Generator {
     int? maxCharsPerLine,
   }) {
     List<int> bytes = [];
-    text=text.replaceAll(RegExp('[^A-Za-z0-9!"#\$%&\'\n()*+,./:;<=>?@\^_`{|}~-]'), ' ');
     if (!containsChinese) {
+      text=text.replaceAll(RegExp('[^A-Za-z0-9!"#\$%&\'\n()*+,./:;<=>?@\^_`{|}~-]'), ' ');
       bytes += _text(
         _encode(text, isKanji: containsChinese),
         styles: styles,
