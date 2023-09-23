@@ -73,11 +73,12 @@ class Generator {
         .replaceAll("»", '"')
         .replaceAll(" ", ' ')
         .replaceAll("•", '.');
-    
+
     if (!isKanji) {
+      text = text.replaceAll(
+          RegExp('[^A-Za-z0-9!"#\$%&\'\n()*+,./:;<=>?@\^_`{|}~-]'), ' ');
       return latin1.encode(text);
     } else {
-      text=text.replaceAll(RegExp('[^A-Za-z0-9!"#\$%&\'\n()*+,./:;<=>?@\^_`{|}~-]'), ' ');
       return Uint8List.fromList(gbk_bytes.encode(text));
     }
   }
@@ -85,6 +86,9 @@ class Generator {
   List _getLexemes(String text) {
     final List<String> lexemes = [];
     final List<bool> isLexemeChinese = [];
+    if (text.isEmpty) {
+      return [];
+    }
     int start = 0;
     int end = 0;
     bool curLexemeChinese = _isChinese(text[0]);
@@ -352,7 +356,8 @@ class Generator {
   }) {
     List<int> bytes = [];
     if (!containsChinese) {
-      text=text.replaceAll(RegExp('[^A-Za-z0-9!"#\$%&\'\n()*+,./:;<=>?@\^_`{|}~-]'), ' ');
+      text = text.replaceAll(
+          RegExp('[^A-Za-z0-9!"#\$%&\'\n()*+,./:;<=>?@\^_`{|}~-]'), ' ');
       bytes += _text(
         _encode(text, isKanji: containsChinese),
         styles: styles,
@@ -491,14 +496,18 @@ class Generator {
         if (realCharactersNb > maxCharactersNb) {
           // Print max possible and split to the next row
           try {
-            while(String.fromCharCodes(encodedToPrint.sublist(0,maxCharactersNb))[String.fromCharCodes(encodedToPrint.sublist(0,maxCharactersNb)).length-1]!=" ")
-            {
-               maxCharactersNb--;
-               if(maxCharactersNb==0)
-               {
+            while (String.fromCharCodes(
+                        encodedToPrint.sublist(0, maxCharactersNb))[
+                    String.fromCharCodes(
+                                encodedToPrint.sublist(0, maxCharactersNb))
+                            .length -
+                        1] !=
+                " ") {
+              maxCharactersNb--;
+              if (maxCharactersNb == 0) {
                 maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
                 break;
-               }
+              }
             }
           } catch (e) {}
           Uint8List encodedToPrintNextRow =
@@ -552,8 +561,8 @@ class Generator {
 
         // Print current row
         final list = _getLexemes(toPrint);
-        final List<String> lexemes = list[0];
-        final List<bool> isLexemeChinese = list[1];
+        final List<String> lexemes = list.isEmpty ? [] : list[0];
+        final List<bool> isLexemeChinese = list.isEmpty ? [] : list[1];
 
         // Print each lexeme using codetable OR kanji
         for (var j = 0; j < lexemes.length; ++j) {
@@ -829,8 +838,8 @@ class Generator {
   }) {
     List<int> bytes = [];
     final list = _getLexemes(text);
-    final List<String> lexemes = list[0];
-    final List<bool> isLexemeChinese = list[1];
+    final List<String> lexemes = list.isEmpty ? [] : list[0];
+    final List<bool> isLexemeChinese = list.isEmpty ? [] : list[1];
 
     // Print each lexeme using codetable OR kanji
     int? colInd = 0;
