@@ -12,7 +12,6 @@ import 'package:hex/hex.dart';
 import 'package:image/image.dart';
 import 'package:gbk_codec/gbk_codec.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'enums.dart';
 import 'commands.dart';
 
 class Generator {
@@ -485,11 +484,11 @@ class Generator {
           _colIndToPosition(colInd + cols[i].width) - spaceBetweenRows;
       int maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
 
-      if (!cols[i].containsChinese) {
+      if (true) {
         // CASE 1: containsChinese = false
         Uint8List encodedToPrint = cols[i].textEncoded != null
             ? cols[i].textEncoded!
-            : _encode(cols[i].text);
+            : _encode(cols[i].text, isKanji: true);
 
         // If the col's content is too long, split it to the next row
         int realCharactersNb = encodedToPrint.length;
@@ -516,6 +515,7 @@ class Generator {
           isNextRow = true;
           nextRow.add(PosColumn(
               textEncoded: encodedToPrintNextRow,
+              containsChinese: true,
               width: cols[i].width,
               styles: cols[i].styles));
         } else {
@@ -524,12 +524,11 @@ class Generator {
               text: '', width: cols[i].width, styles: cols[i].styles));
         }
         // end rows splitting
-        bytes += _text(
-          encodedToPrint,
-          styles: cols[i].styles,
-          colInd: colInd,
-          colWidth: cols[i].width,
-        );
+        bytes += _text(encodedToPrint,
+            styles: cols[i].styles,
+            colInd: colInd,
+            colWidth: cols[i].width,
+            isKanji: true);
       } else {
         // CASE 1: containsChinese = true
         // Split text into multiple lines if it too long
