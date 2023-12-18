@@ -36,11 +36,11 @@ class PosTextSize {
 }
 
 class PaperSize {
-  const PaperSize._internal(this.value, this.custom);
+  PaperSize._internal(this.value);
   final int value;
-  final int? custom;
-  static const mm58 = PaperSize._internal(1, null);
-  static const mm80 = PaperSize._internal(2, null);
+  int? custom;
+  static var mm58 = PaperSize._internal(1);
+  static var mm80 = PaperSize._internal(2);
 
   int get width =>
       (custom != null ? custom! : (value == PaperSize.mm58.value ? 372 : 558));
