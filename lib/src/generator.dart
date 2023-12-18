@@ -484,7 +484,7 @@ class Generator {
           _colIndToPosition(colInd + cols[i].width) - spaceBetweenRows;
       int maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
 
-      if (true) {
+      if (!cols[i].containsChinese) {
         // CASE 1: containsChinese = false
         Uint8List encodedToPrint = cols[i].textEncoded != null
             ? cols[i].textEncoded!
