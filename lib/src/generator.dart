@@ -466,7 +466,7 @@ class Generator {
   ///
   /// A row contains up to 12 columns. A column has a width between 1 and 12.
   /// Total width of columns in one row must be equal 12.
-  List<int> row(List<PosColumn> cols) {
+  List<int> row(List<PosColumn> cols, bool containChineese) {
     List<int> bytes = [];
     final isSumValid = cols.fold(0, (int sum, col) => sum + col.width) == 12;
     if (!isSumValid) {
@@ -488,7 +488,7 @@ class Generator {
         // CASE 1: containsChinese = false
         Uint8List encodedToPrint = cols[i].textEncoded != null
             ? cols[i].textEncoded!
-            : _encode(cols[i].text, isKanji: true);
+            : _encode(cols[i].text, isKanji: containChineese);
 
         // If the col's content is too long, split it to the next row
         int realCharactersNb = encodedToPrint.length;
@@ -515,7 +515,7 @@ class Generator {
           isNextRow = true;
           nextRow.add(PosColumn(
               textEncoded: encodedToPrintNextRow,
-              containsChinese: true,
+              containsChinese: containChineese,
               width: cols[i].width,
               styles: cols[i].styles));
         } else {
@@ -528,7 +528,7 @@ class Generator {
             styles: cols[i].styles,
             colInd: colInd,
             colWidth: cols[i].width,
-            isKanji: true);
+            isKanji: containChineese);
       } else {
         // CASE 1: containsChinese = true
         // Split text into multiple lines if it too long
@@ -549,7 +549,7 @@ class Generator {
           isNextRow = true;
           nextRow.add(PosColumn(
               text: toPrintNextRow,
-              containsChinese: true,
+              containsChinese: containChineese,
               width: cols[i].width,
               styles: cols[i].styles));
         } else {
@@ -581,7 +581,7 @@ class Generator {
     bytes += emptyLines(1);
 
     if (isNextRow) {
-      bytes += row(nextRow);
+      bytes += row(nextRow, containChineese);
     }
     return bytes;
   }
