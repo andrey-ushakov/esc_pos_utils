@@ -149,17 +149,23 @@ class Generator {
     final int heightPx = image.height;
 
     // Create a black bottom layer
-    final biggerImage = copyResize(image, width: widthPx, height: heightPx);
-    fill(biggerImage, 0);
+    final biggerImage = copyResize(image,
+        width: widthPx, height: heightPx, interpolation: Interpolation.linear);
+    //fill(biggerImage, color: ColorRgb8(0, 0, 0));
+    fill(biggerImage, color: ColorRgb8(0, 0, 0));
     // Insert source image into bigger one
-    drawImage(biggerImage, image, dstX: 0, dstY: 0);
+    compositeImage(biggerImage, image, dstX: 0, dstY: 0);
 
     int left = 0;
     final List<List<int>> blobs = [];
 
     while (left < widthPx) {
-      final Image slice = copyCrop(biggerImage, left, 0, lineHeight, heightPx);
-      final Uint8List bytes = slice.getBytes(format: Format.luminance);
+      final Image slice = copyCrop(biggerImage,
+          x: left, y: 0, width: lineHeight, height: heightPx);
+      if (slice.numChannels > 2) grayscale(slice);
+      final imgBinary =
+          (slice.numChannels > 1) ? slice.convert(numChannels: 1) : slice;
+      final bytes = imgBinary.getBytes();
       blobs.add(bytes);
       left += lineHeight;
     }
@@ -178,7 +184,7 @@ class Generator {
 
     // R/G/B channels are same -> keep only one channel
     final List<int> oneChannelBytes = [];
-    final List<int> buffer = image.getBytes(format: Format.rgba);
+    final List<int> buffer = image.getBytes();
     for (int i = 0; i < buffer.length; i += 4) {
       oneChannelBytes.add(buffer[i]);
     }
@@ -589,20 +595,35 @@ class Generator {
   /// Print an image using (ESC *) command
   ///
   /// [image] is an instanse of class from [Image library](https://pub.dev/packages/image)
-  List<int> image(Image imgSrc, {PosAlign align = PosAlign.center}) {
+  List<int> image(Image imgSrc,
+      {PosAlign align = PosAlign.center, bool isDoubleDensity = true}) {
     List<int> bytes = [];
     // Image alignment
-    bytes += setStyles(PosStyles().copyWith(align: align));
+    bytes += setStyles(const PosStyles().copyWith(align: align));
 
-    final Image image = Image.from(imgSrc); // make a copy
-    const bool highDensityHorizontal = true;
-    const bool highDensityVertical = true;
+    Image image;
+    if (!isDoubleDensity) {
+      int size = 558 ~/ 2;
+      if (_paperSize == PaperSize.mm58) {
+        size = 375 ~/ 2;
+      } else if (_paperSize == PaperSize.mm80) {
+        size = 503 ~/ 2;
+      }
+
+      image =
+          copyResize(imgSrc, width: size, interpolation: Interpolation.linear);
+    } else {
+      image = Image.from(imgSrc); // make a copy
+    }
+
+    bool highDensityHorizontal = isDoubleDensity;
+    bool highDensityVertical = isDoubleDensity;
 
     invert(image);
-    flip(image, Flip.horizontal);
-    final Image imageRotated = copyRotate(image, 270);
+    flipHorizontal(image);
+    final Image imageRotated = copyRotate(image, angle: 270);
 
-    const int lineHeight = highDensityVertical ? 3 : 1;
+    int lineHeight = highDensityVertical ? 3 : 1;
     final List<List<int>> blobs = _toColumnFormat(imageRotated, lineHeight * 8);
 
     // Compress according to line density
@@ -614,7 +635,7 @@ class Generator {
     }
 
     final int heightPx = imageRotated.height;
-    const int densityByte =
+    int densityByte =
         (highDensityHorizontal ? 1 : 0) + (highDensityVertical ? 32 : 0);
 
     final List<int> header = List.from(cBitImg.codeUnits);
@@ -622,7 +643,7 @@ class Generator {
     header.addAll(_intLowHigh(heightPx, 2));
 
     // Adjust line spacing (for 16-unit line feeds): ESC 3 0x10 (HEX: 0x1b 0x33 0x10)
-    bytes += [27, 51, 16];
+    bytes += [27, 51, 0];
     for (int i = 0; i < blobs.length; ++i) {
       bytes += List.from(header)
         ..addAll(blobs[i])
