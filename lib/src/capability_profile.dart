@@ -7,7 +7,6 @@
  */
 
 import 'dart:convert' show json;
-import 'dart:convert' show utf8;
 import 'package:flutter/services.dart' show rootBundle;
 
 class CodePage {

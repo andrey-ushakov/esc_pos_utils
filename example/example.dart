@@ -42,7 +42,7 @@ Future<void> main() async {
       width: 3,
       styles: PosStyles(align: PosAlign.center, underline: true),
     ),
-  ]);
+  ], false);
 
   bytes += generator.text('Text size 200%',
       styles: PosStyles(
